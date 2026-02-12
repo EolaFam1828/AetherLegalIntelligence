@@ -50,4 +50,24 @@ docker compose up -d aether
 
 ## License
 
-MIT
+Copyright (c) 2026 Jake. All rights reserved.
+
+PORTFOLIO LICENSE — NO COMMERCIAL USE
+
+This repository and its contents are shared publicly for portfolio
+demonstration and evaluation purposes only.
+
+NO LICENSE IS GRANTED for any of the following without prior written
+permission from the copyright holder:
+
+  - Commercial use of any kind
+  - Reproduction or distribution
+  - Creation of derivative works
+  - Use in any production system or service
+  - Incorporation into any product or offering
+
+For licensing inquiries, please contact the copyright holder directly.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY ARISING FROM THE USE OF THIS SOFTWARE.
