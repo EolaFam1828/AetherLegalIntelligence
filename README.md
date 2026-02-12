@@ -1,73 +1,90 @@
 # Aether — Litigation Intelligence Platform
 
-AI-powered legal case management for pro se litigants and solo practitioners.
+**AI-native case intelligence for complex litigation.** Aether transforms raw litigation data — pleadings, depositions, discovery productions, expert reports — into structured, actionable intelligence a decision-maker can consume in minutes.
 
-## Features
+Built as a full-stack production system with 13 integrated modules, 34 API endpoints, multi-model AI routing, and zero-trust security.
 
-- **Case Management** — Organize cases, parties, documents, timeline events, and notes
-- **AI Legal Advisor** — Context-aware chat powered by Gemini 3 Pro
-- **Strategy Engine** — War room SWOT analysis with adversarial forecasting
-- **Red Team Audit** — Opposing counsel vulnerability analysis
-- **Document Intelligence** — Upload and analyze legal documents
-- **Document Drafting** — AI-generated motions, briefs, and letters
-- **Discovery Generator** — Interrogatories, RFPs, and RFAs tailored to your case
-- **Citation Verification** — Checks case citations for hallucination risk
-- **Hearing Simulator** — Practice arguments against an AI judge
-- **Deposition Simulator** — Prepare for depositions with hostile AI opposing counsel
-- **Privilege Scanner** — Detect attorney-client privilege and protected content
-- **Case Valuation** — Settlement value estimates with comparable cases
-- **Timeline Tracking** — Chronological event management with deadline alerts
+---
+
+<!--
+## Screenshots
+
+> Add 4-6 screenshots here showing the platform in action.
+> Recommended: Dashboard, War Room SWOT output, Red Team Audit,
+> Discovery Generator, Deposition Simulator, Evidence Grid.
+
+| Dashboard | War Room Analysis |
+|-----------|-------------------|
+| ![Dashboard](screenshots/dashboard.png) | ![War Room](screenshots/war-room.png) |
+
+| Red Team Audit | Discovery Generator |
+|----------------|---------------------|
+| ![Red Team](screenshots/red-team.png) | ![Discovery](screenshots/discovery.png) |
+
+-->
+
+## What It Does
+
+| Module | Capability |
+|--------|-----------|
+| **AI Legal Advisor** | Context-aware chat with full case data access — documents, parties, events, notes |
+| **War Room** | SWOT analysis: elemental breakdown, adversarial forecasting, win probability, strategic sequencing |
+| **Red Team Audit** | Opposing counsel vulnerability matrix — severity scoring, exploit strategies, recommended defenses |
+| **Discovery Generator** | Auto-generated interrogatories, RFPs, and RFAs tailored to case facts with strategic purpose annotations |
+| **Document Drafting** | AI-generated motions, briefs, and correspondence with jurisdiction-specific formatting |
+| **Citation Verification** | Hallucination detection for legal citations — flags suspicious or fabricated case law before filing |
+| **Hearing Simulator** | Practice oral arguments against an AI judge with configurable persona |
+| **Deposition Simulator** | Prepare for depositions against hostile AI opposing counsel |
+| **Case Valuation** | Settlement value estimation with comparable case analysis |
+| **Privilege Scanner** | Flags attorney-client privilege and work product before production |
+| **Document Intelligence** | Vision-based document analysis — upload PDFs, images, and text for AI processing |
+| **Timeline Tracking** | Chronological event management with deadline alerting |
+| **Case Management** | Multi-tenant case organization with party tracking, document management, and notes |
+
+→ **[Full feature documentation](FEATURES.md)**
+
+## Architecture
+
+Multi-model AI engine with task-based routing, multi-tenant data isolation, SSO authentication, and full audit trail. Deployed as a containerized service within a zero-trust infrastructure.
+
+→ **[System architecture with diagrams](ARCHITECTURE.md)** — includes data model, API surface, request lifecycle, security model, and deployment topology.
 
 ## Tech Stack
 
-- **Frontend:** React 19, TypeScript, Vite, Tailwind CSS
-- **Backend:** Express.js, TypeScript, Prisma ORM
-- **Database:** PostgreSQL 16 with pgvector
-- **AI:** Gemini 3 Pro (complex reasoning), Gemini 3 Flash (chat/scans), Ollama fallback
-- **Auth:** Authentik SSO via Traefik ForwardAuth
-- **Storage:** NAS-mounted filesystem
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React 19, TypeScript, Vite, Tailwind CSS |
+| Backend | Express.js, TypeScript, Prisma ORM |
+| Database | PostgreSQL 16 |
+| AI (Primary) | Google Gemini 3 Pro (strategy, audit, drafting) · Gemini 3 Flash (chat, simulation) |
+| AI (Fallback) | Ollama + Llama 3.1 — local inference, offline capability |
+| Auth | Authentik SSO via Traefik ForwardAuth |
+| Security | Cloudflare Tunnel (zero open ports), TLS 1.3, audit logging |
+| Deployment | Docker, NAS-mounted storage |
 
-## Deployment
+## Repository Structure
 
-Deployed as a Docker container in the Eola Gateway homelab infrastructure. See the parent `docker-compose.yml` for configuration.
+This is a **public portfolio showcase**. It contains architecture documentation, data models, and feature descriptions demonstrating the system design and capabilities. The full production source code is maintained in a private repository and is available for live demonstration upon request.
 
-```bash
-# Build and deploy
-cd ~/homelab/aether
-docker compose build --no-cache aether
-docker compose up -d aether
+```
+├── ARCHITECTURE.md        ← System diagrams (Mermaid)
+├── FEATURES.md            ← Module documentation
+├── prisma/schema.prisma   ← Data model (9 tables)
+├── types.ts               ← TypeScript type definitions
+├── Dockerfile             ← Production container config
+├── package.json           ← Dependency manifest
+├── public/                ← Legal docs, policies
+└── [config files]         ← Vite, Tailwind, TypeScript, PostCSS
 ```
 
-## Environment Variables
+## About
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `DATABASE_URL` | Yes | PostgreSQL connection string |
-| `GEMINI_API_KEY` | Yes | Google Gemini API key |
-| `OLLAMA_BASE_URL` | No | Ollama server URL (default: http://ollama:11434) |
-| `DATA_DIR` | No | Data directory (default: /app/data) |
-| `PORT` | No | Server port (default: 3000) |
+Designed and built by **Jake** — Stetson University '21, Orlando FL. Background in institutional development, grants compliance, and AI-driven workflow automation.
+
+This platform was built to demonstrate that litigation intelligence is a solvable problem: raw case data in, structured strategic insight out.
+
+**Interested in a live demo?** Reach out via [LinkedIn](#) or email.
 
 ## License
 
-Copyright (c) 2026 Jake. All rights reserved.
-
-PORTFOLIO LICENSE — NO COMMERCIAL USE
-
-This repository and its contents are shared publicly for portfolio
-demonstration and evaluation purposes only.
-
-NO LICENSE IS GRANTED for any of the following without prior written
-permission from the copyright holder:
-
-  - Commercial use of any kind
-  - Reproduction or distribution
-  - Creation of derivative works
-  - Use in any production system or service
-  - Incorporation into any product or offering
-
-For licensing inquiries, please contact the copyright holder directly.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-OR IMPLIED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY ARISING FROM THE USE OF THIS SOFTWARE.
+© 2026 Jake. All rights reserved. Portfolio demonstration only — no commercial use, reproduction, or derivative works without written permission. See [LICENSE](LICENSE).
