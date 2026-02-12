@@ -17,10 +17,10 @@ The Service utilizes stochastic generative artificial intelligence models ("AI A
 ## 3. USER ELIGIBILITY & RESPONSIBILITIES
 * **Professional Status:** You represent that you are a licensed attorney or a legal professional operating under the supervision of a licensed attorney.
 * **Compliance:** You are solely responsible for ensuring your use of the Service complies with all applicable Rules of Professional Conduct, including duties of competence and confidentiality.
-* **Security:** You agree to safeguard your authentication credentials (Firebase) and immediately report any unauthorized access.
+* **Security:** You agree to safeguard your authentication credentials and immediately report any unauthorized access.
 
 ## 4. INTELLECTUAL PROPERTY
-* **Aether IP:** Aether retains all rights to the "Tribunal" architecture, "Cognitive Protocols," source code, and system prompts.
+* **Aether IP:** Aether retains all rights to the platform architecture, Cognitive Protocol framework, source code, AI system prompts, and all proprietary methodologies.
 * **User Content:** You retain all rights to the documents and case files you upload. You grant Aether a limited, non-exclusive license to process this data solely for the purpose of providing the Service.
 
 ## 5. LIMITATION OF LIABILITY

@@ -10,7 +10,10 @@
 Organize cases with full party tracking, document management, timeline events, and notes. Multi-firm architecture with role-based access (Admin / Member / Viewer). All cases are scoped to the authenticated user's firm — no data leakage across tenants.
 
 ### Document Intelligence
-Upload and analyze legal documents using vision-based AI. Supports PDFs, images, and text files up to 50MB. Documents are tagged, categorized, and stored on NAS-mounted persistent storage. Uploaded documents become part of the case context available to all AI modules.
+Upload and analyze legal documents using vision-based AI. Supports PDFs, images, and text files up to 50MB. On upload, documents are automatically processed through an asynchronous pipeline: text extraction, AI-powered analysis, timeline event creation, and vector embedding generation. Documents are tagged, categorized, and stored on NAS-mounted persistent storage. All uploaded documents become part of the case context available to every AI module.
+
+### Semantic Search (RAG)
+All uploaded documents are chunked into semantically meaningful segments and embedded as 768-dimensional vectors using Google's embedding model. When any AI module processes a query, the system retrieves the most relevant document chunks via cosine similarity search (pgvector), injecting precise source material into the AI context. This ensures AI responses are grounded in the actual case record rather than relying solely on model knowledge.
 
 ### Timeline Tracking
 Chronological event management with deadline flagging. Events can be marked as verified or unverified, tagged by type (filing, hearing, deposition, deadline, general), and surfaced in case briefings. Deadline events drive urgency signals in strategy analysis.
@@ -20,7 +23,7 @@ Chronological event management with deadline flagging. Events can be marked as v
 ## AI Intelligence Modules
 
 ### AI Legal Advisor
-Context-aware chat powered by case data. The advisor has access to all documents, parties, events, and notes for the active case. Conversation history is persisted per-case, allowing multi-session analysis. Jurisdiction constraints ensure advice stays within applicable law.
+Context-aware chat powered by case data. The advisor has access to all documents, parties, events, and notes for the active case. Conversation history is persisted per-case with automatic summarization — a sliding window of recent messages is maintained alongside AI-generated summaries of older conversations, enabling continuity across sessions without unbounded context growth. Jurisdiction constraints ensure advice stays within applicable law.
 
 ### War Room — Strategic Analysis
 Full SWOT analysis engine that outputs structured JSON:
@@ -82,6 +85,31 @@ Scans documents for attorney-client privilege and work product indicators. Flags
 
 ---
 
+## Document Processing Pipeline
+
+Every document upload triggers an automatic, asynchronous processing pipeline:
+
+1. **Text Extraction** — Content is extracted from PDF, image, and text files
+2. **AI Analysis** — The extracted text is analyzed by the AI engine for key facts, legal issues, and relevant entities
+3. **Timeline Event Creation** — Significant dates and events identified in the document are automatically added to the case timeline
+4. **Vector Embedding** — The document is split into semantically coherent chunks (sentence-boundary-aware) and each chunk is embedded as a 768-dimensional vector for RAG retrieval
+
+This pipeline runs in the background after upload — users see their document immediately while processing completes asynchronously.
+
+---
+
+## Conversation Memory
+
+The AI Legal Advisor maintains persistent, efficient conversation memory per case:
+
+- **Sliding Window** — Recent messages are maintained in full fidelity for immediate context
+- **Automatic Summarization** — When conversations exceed the window, older messages are automatically summarized by the AI and stored as compressed context
+- **Cross-Session Continuity** — Summaries persist across sessions, so the AI advisor retains awareness of prior discussions without consuming unbounded context
+
+This enables sustained, multi-session legal analysis where the AI builds cumulative understanding of a case over time.
+
+---
+
 ## Security & Infrastructure
 
 - **Zero-trust network** — Cloudflare Tunnel, no open ports
@@ -93,6 +121,19 @@ Scans documents for attorney-client privilege and work product indicators. Flags
 
 ---
 
+## Supported Jurisdictions
+
+Each AI module is bound to the applicable jurisdiction's statutes, procedural rules, and court conventions:
+
+| Jurisdiction | Court System |
+|-------------|-------------|
+| **Florida** | 9th Circuit — Orange County |
+| **Georgia** | Superior Court — Fulton County |
+| **New York** | US District Court — Southern District |
+| **Texas** | District Court — Harris County |
+
+---
+
 ## License
 
-© 2026. All rights reserved. Shared for portfolio and demonstration purposes only.
+Copyright 2026 Jake Sadoway. All rights reserved. Shared for portfolio and demonstration purposes only.

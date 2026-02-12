@@ -2,32 +2,15 @@
 
 **AI-native case intelligence for complex litigation.** Aether transforms raw litigation data — pleadings, depositions, discovery productions, expert reports — into structured, actionable intelligence a decision-maker can consume in minutes.
 
-Built as a full-stack production system with 13 integrated modules, 34 API endpoints, multi-model AI routing, and zero-trust security.
+Built as a full-stack production system with 13 integrated modules, 34 API endpoints, multi-model AI routing, RAG-powered semantic search, and zero-trust security.
 
 ---
-
-<!--
-## Screenshots
-
-> Add 4-6 screenshots here showing the platform in action.
-> Recommended: Dashboard, War Room SWOT output, Red Team Audit,
-> Discovery Generator, Deposition Simulator, Evidence Grid.
-
-| Dashboard | War Room Analysis |
-|-----------|-------------------|
-| ![Dashboard](screenshots/dashboard.png) | ![War Room](screenshots/war-room.png) |
-
-| Red Team Audit | Discovery Generator |
-|----------------|---------------------|
-| ![Red Team](screenshots/red-team.png) | ![Discovery](screenshots/discovery.png) |
-
--->
 
 ## What It Does
 
 | Module | Capability |
 |--------|-----------|
-| **AI Legal Advisor** | Context-aware chat with full case data access — documents, parties, events, notes |
+| **AI Legal Advisor** | Context-aware chat with full case data access — documents, parties, events, notes — plus RAG-powered document retrieval and persistent conversation memory |
 | **War Room** | SWOT analysis: elemental breakdown, adversarial forecasting, win probability, strategic sequencing |
 | **Red Team Audit** | Opposing counsel vulnerability matrix — severity scoring, exploit strategies, recommended defenses |
 | **Discovery Generator** | Auto-generated interrogatories, RFPs, and RFAs tailored to case facts with strategic purpose annotations |
@@ -37,17 +20,18 @@ Built as a full-stack production system with 13 integrated modules, 34 API endpo
 | **Deposition Simulator** | Prepare for depositions against hostile AI opposing counsel |
 | **Case Valuation** | Settlement value estimation with comparable case analysis |
 | **Privilege Scanner** | Flags attorney-client privilege and work product before production |
-| **Document Intelligence** | Vision-based document analysis — upload PDFs, images, and text for AI processing |
+| **Document Intelligence** | Vision-based document analysis with automatic text extraction, AI analysis, timeline event creation, and vector embedding generation |
+| **Semantic Search** | RAG pipeline with vector embeddings — cosine similarity search across all case documents for context-aware AI responses |
 | **Timeline Tracking** | Chronological event management with deadline alerting |
 | **Case Management** | Multi-tenant case organization with party tracking, document management, and notes |
 
-→ **[Full feature documentation](FEATURES.md)**
+> **[Full feature documentation](FEATURES.md)**
 
 ## Architecture
 
-Multi-model AI engine with task-based routing, multi-tenant data isolation, SSO authentication, and full audit trail. Deployed as a containerized service within a zero-trust infrastructure.
+Multi-model AI engine with task-based routing, RAG-powered semantic search, conversation memory with automatic summarization, multi-tenant data isolation, SSO authentication, and full audit trail. Deployed as a containerized service within a zero-trust infrastructure.
 
-→ **[System architecture with diagrams](ARCHITECTURE.md)** — includes data model, API surface, request lifecycle, security model, and deployment topology.
+> **[System architecture with diagrams](ARCHITECTURE.md)** — includes data model, AI engine, RAG pipeline, request lifecycle, security model, and deployment topology.
 
 ## Tech Stack
 
@@ -55,36 +39,39 @@ Multi-model AI engine with task-based routing, multi-tenant data isolation, SSO 
 |-------|-----------|
 | Frontend | React 19, TypeScript, Vite, Tailwind CSS |
 | Backend | Express.js, TypeScript, Prisma ORM |
-| Database | PostgreSQL 16 |
-| AI (Primary) | Google Gemini 3 Pro (strategy, audit, drafting) · Gemini 3 Flash (chat, simulation) |
+| Database | PostgreSQL 16, pgvector extension |
+| AI (Primary) | Google Gemini Pro (strategy, audit, drafting) · Gemini Flash (chat, simulation) |
 | AI (Fallback) | Ollama + Llama 3.1 — local inference, offline capability |
+| Embeddings | Google Embedding API (768-dimensional vectors) |
 | Auth | Authentik SSO via Traefik ForwardAuth |
 | Security | Cloudflare Tunnel (zero open ports), TLS 1.3, audit logging |
 | Deployment | Docker, NAS-mounted storage |
 
 ## Repository Structure
 
-This is a **public portfolio showcase**. It contains architecture documentation, data models, and feature descriptions demonstrating the system design and capabilities. The full production source code is maintained in a private repository and is available for live demonstration upon request.
+This is a **public portfolio showcase**. It contains architecture documentation, system design diagrams, and feature descriptions demonstrating the platform's engineering and capabilities. The full production source code is maintained in a private repository and is available for live demonstration upon request.
 
 ```
-├── ARCHITECTURE.md        ← System diagrams (Mermaid)
+├── README.md              ← Platform overview (this file)
+├── ARCHITECTURE.md        ← System diagrams (Mermaid) & data model
 ├── FEATURES.md            ← Module documentation
-├── prisma/schema.prisma   ← Data model (9 tables)
-├── types.ts               ← TypeScript type definitions
-├── Dockerfile             ← Production container config
-├── package.json           ← Dependency manifest
-├── public/                ← Legal docs, policies
-└── [config files]         ← Vite, Tailwind, TypeScript, PostCSS
+├── LICENSE                ← Portfolio license
+├── legal/                 ← Enterprise legal documents
+│   ├── TERMS_OF_SERVICE.md
+│   ├── PRIVACY_POLICY.md
+│   ├── ACCEPTABLE_USE_POLICY.md
+│   └── MASTER_SERVICES_AGREEMENT.md
+└── public/                ← Brand assets
 ```
 
 ## About
 
-Designed and built by **Jake** — Stetson University '21, Orlando FL. Background in institutional development, grants compliance, and AI-driven workflow automation.
+Designed and built by **Jake Sadoway** — Stetson University '21, Orlando FL. Background in institutional development, grants compliance, and AI-driven workflow automation.
 
 This platform was built to demonstrate that litigation intelligence is a solvable problem: raw case data in, structured strategic insight out.
 
-**Interested in a live demo?** Reach out via [LinkedIn](#) or email.
+**Interested in a live demo?** Reach out via [LinkedIn](https://www.linkedin.com/in/jakesadoway) or email.
 
 ## License
 
-© 2026 Jake. All rights reserved. Portfolio demonstration only — no commercial use, reproduction, or derivative works without written permission. See [LICENSE](LICENSE).
+Copyright 2026 Jake Sadoway. All rights reserved. Portfolio demonstration only — no commercial use, reproduction, or derivative works without written permission. See [LICENSE](LICENSE).

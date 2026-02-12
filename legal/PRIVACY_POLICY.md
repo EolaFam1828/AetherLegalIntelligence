@@ -3,7 +3,7 @@
 
 ## 1. DATA COLLECTION & SCOPE
 We collect and process the following data to operate the Aether Cognitive Engine:
-* **Account Data:** Name, email, and firm affiliation (via Firebase Authentication).
+* **Account Data:** Name, email, and firm affiliation (via SSO identity provider).
 * **Case Data:** Uploaded documents (PDF/Text), case summaries, and strategy parameters.
 * **Telemetry:** Usage logs, audit trails, and system performance metrics as defined in our Audit Middleware.
 
@@ -14,7 +14,7 @@ Aether acts as a **Data Processor** acting at the direction of the User (Data Co
 
 ## 3. DATA STORAGE & SECURITY
 * **Encryption:** Data is encrypted in transit (TLS 1.3) and at rest (AES-256).
-* **Infrastructure:** We utilize secure containerized processing (Docker) and Google Cloud Storage with strict IAM access controls.
+* **Infrastructure:** We utilize secure containerized processing (Docker) with hardened containers, zero-trust network architecture, and strict access controls.
 * **Audit Logging:** All data access is immutably logged for security audits, in compliance with SOC 2 readiness standards.
 
 ## 4. DATA RETENTION & DELETION
@@ -23,9 +23,9 @@ Aether acts as a **Data Processor** acting at the direction of the User (Data Co
 
 ## 5. SUBPROCESSORS
 We utilize the following trusted subprocessors:
-* **Google Vertex AI / Gemini:** For cognitive processing (Stateless mode).
-* **Firebase (Google):** For identity management.
-* **Google Cloud Platform:** For underlying cloud infrastructure and storage.
+* **Google Gemini:** For cognitive processing (stateless mode, no data retention).
+* **SSO Identity Provider:** For authentication and identity management.
+* **Self-Hosted Infrastructure:** Containerized deployment with encrypted storage.
 
 ## 6. YOUR RIGHTS
 You have the right to:
