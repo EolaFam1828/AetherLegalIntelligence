@@ -1,0 +1,177 @@
+// =============================================================================
+// Aether Legal — Unified Prisma Schema (PostgreSQL)
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ================== WORKSPACE ==================
+
+model Firm {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  users     User[]
+  cases     Case[]
+}
+
+// ================== AUTH (Authentik-provisioned) ==================
+
+model User {
+  id           String   @id @default(uuid())
+  authentikUid String   @unique
+  email        String   @unique
+  name         String?
+  role         String   @default("MEMBER") // ADMIN, MEMBER, VIEWER
+  firmId       String?
+  firm         Firm?    @relation(fields: [firmId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  cases        Case[]
+
+  @@index([firmId])
+}
+
+// ================== CASE MANAGEMENT ==================
+
+model Case {
+  id           String        @id @default(uuid())
+  title        String
+  caseNumber   String?
+  summary      String?
+  caseType     String        @default("civil")
+  status       String        @default("active")
+  jurisdiction String        @default("FL - 9th Judicial Circuit, Orange County")
+  court        String?
+  judge        String?
+  userId       String
+  user         User          @relation(fields: [userId], references: [id])
+  firmId       String
+  firm         Firm          @relation(fields: [firmId], references: [id])
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  documents    Document[]
+  events       Event[]
+  parties      Party[]
+  notes        Note[]
+  chatMessages ChatMessage[]
+
+  @@index([firmId])
+  @@index([userId])
+}
+
+model Party {
+  id          String   @id @default(uuid())
+  name        String
+  role        String
+  description String?
+  contact     String?
+  caseId      String
+  case        Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@index([caseId])
+}
+
+// ================== DOCUMENTS ==================
+
+model Document {
+  id          String        @id @default(uuid())
+  title       String
+  fileName    String
+  mimeType    String
+  size        Int
+  storagePath String
+  category    String?
+  caseId      String
+  case        Case          @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  uploadedAt  DateTime      @default(now())
+  tags        DocumentTag[]
+
+  @@index([caseId])
+}
+
+model DocumentTag {
+  id         String   @id @default(uuid())
+  name       String
+  color      String?
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([documentId, name])
+  @@index([name])
+}
+
+// ================== TIMELINE ==================
+
+model Event {
+  id          String   @id @default(uuid())
+  title       String
+  date        DateTime
+  type        String   @default("general")
+  description String?  @db.Text
+  isVerified  Boolean  @default(false)
+  isDeadline  Boolean  @default(false)
+  caseId      String
+  case        Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@index([caseId])
+  @@index([date])
+}
+
+// ================== NOTES ==================
+
+model Note {
+  id        String   @id @default(uuid())
+  title     String?
+  content   String   @db.Text
+  category  String   @default("general")
+  caseId    String
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([caseId])
+}
+
+// ================== CHAT HISTORY ==================
+
+model ChatMessage {
+  id        String   @id @default(uuid())
+  caseId    String?
+  case      Case?    @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  userId    String
+  role      String
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+
+  @@index([caseId])
+  @@index([userId])
+}
+
+// ================== AUDIT LOG ==================
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String
+  action     String
+  resource   String?
+  resourceId String?
+  ipAddress  String?
+  userAgent  String?
+  metadata   Json?
+  timestamp  DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([timestamp])
+}
