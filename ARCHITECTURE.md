@@ -377,9 +377,10 @@ flowchart TB
         I6["POST /verify-citations<br/><i>LLM citation plausibility check</i>"]
     end
 
-    subgraph SIMULATION["Simulation — 2 endpoints"]
+    subgraph SIMULATION["Simulation — 3 endpoints"]
         S1["POST /simulate-hearing<br/><i>AI judge argument practice</i>"]
         S2["POST /simulate-deposition<br/><i>Hostile opposing counsel</i>"]
+        S3["POST /transcribe<br/><i>Voice input via Whisper</i>"]
     end
 
     subgraph TOOLS["Analysis Tools — 3 endpoints"]
@@ -520,6 +521,7 @@ flowchart TB
     subgraph EXTERNAL["External Services"]
         GEMINI["Google Gemini API<br/><i>Pro + Flash models</i>"]
         GEMBED["Google Embedding API<br/><i>768-dim vectors</i>"]
+        WHISPER["OpenAI Whisper API<br/><i>Speech-to-text</i>"]
         NAS["QNAP NAS<br/><i>Document storage<br/>NFS mount</i>"]
     end
 
@@ -527,6 +529,7 @@ flowchart TB
     AETHER --> OLLAMA
     AETHER --> GEMINI
     AETHER --> GEMBED
+    AETHER --> WHISPER
     AETHER --> NAS
 
     style DOCKER fill:#1e293b,stroke:#3b82f6,color:#e2e8f0
@@ -545,6 +548,7 @@ flowchart TB
 | AI (Primary) | Google Gemini Pro/Flash | Complex reasoning + chat |
 | AI (Fallback) | Ollama + Llama 3.1:8b | Local inference, offline capability |
 | Embeddings | Google Embedding API | 768-dim document vectors |
+| Transcription | OpenAI Whisper API (whisper-1) | Voice input for simulators |
 | Auth | Authentik SSO via ForwardAuth | Identity proxy (header-based) |
 | Storage | NAS-mounted filesystem | Document persistence |
 | Containerization | Docker + Docker Compose | Deployment + isolation |

@@ -52,6 +52,7 @@ Multi-model AI engine with task-based routing, RAG-powered semantic search, conv
 | AI (Primary) | Google Gemini Pro (strategy, audit, drafting) · Gemini Flash (chat, simulation) |
 | AI (Fallback) | Ollama + Llama 3.1 — local inference when Gemini is unavailable |
 | Embeddings | Google Embedding API (768-dimensional vectors) |
+| Transcription | OpenAI Whisper API (whisper-1) — voice input for simulators |
 | Auth | Authentik SSO via Traefik ForwardAuth (header-based, no JWT) |
 | Infrastructure | Containerized, deployed behind an identity proxy |
 
