@@ -257,6 +257,8 @@ AetherLegalIntelligence/
 
 Jake Sadoway is a litigation intelligence systems designer focused on retrieval, synthesis, and evidence workflows for complex matters. He builds tools that convert messy, high-volume case materials into structured, queryable knowledge. Pleadings, discovery, expert reports, transcripts, internal communications, and chronology all become connected artifacts rather than scattered files. His approach prioritizes traceability, security-minded architecture, and human verification. The objective is simple. Reduce time-to-understanding and increase confidence in what the record actually supports.
 
+---
+
 ### Live Demo
 
 The working system is privately hosted and demonstrated live upon request.
