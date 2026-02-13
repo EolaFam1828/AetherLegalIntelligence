@@ -14,9 +14,7 @@ flowchart TB
         UI["React 19 + TypeScript SPA"]
     end
 
-    subgraph EDGE["Edge & Auth"]
-        CF["Cloudflare Tunnel<br/><i>No open ports</i>"]
-        TF["Traefik v3<br/><i>TLS 1.3 · Routing</i>"]
+    subgraph EDGE["Identity Proxy"]
         AK["Authentik SSO<br/><i>ForwardAuth Middleware</i>"]
     end
 
@@ -42,9 +40,8 @@ flowchart TB
         FS["NAS-Mounted Storage<br/><i>Document files · Uploads</i>"]
     end
 
-    UI -->|HTTPS| CF --> TF
-    TF -->|ForwardAuth| AK
-    TF --> EX
+    UI -->|HTTPS| AK
+    AK -->|ForwardAuth| EX
     EX --> MW --> RT
     RT --> G3P & G3F & OL
     EX --> EMB --> PGV
@@ -161,7 +158,7 @@ flowchart TB
 
 ## Conversation Memory
 
-The AI Legal Advisor maintains persistent memory across sessions using a hybrid approach:
+The Case Chat Assistant maintains persistent memory across sessions using a hybrid approach:
 
 ```mermaid
 flowchart LR
@@ -386,7 +383,7 @@ flowchart TB
     end
 
     subgraph TOOLS["Analysis Tools — 3 endpoints"]
-        T1["POST /analyze-document<br/><i>Vision-based doc analysis</i>"]
+        T1["POST /analyze-document<br/><i>Document analysis</i>"]
         T2["POST /tools/valuate<br/><i>Settlement valuation</i>"]
         T3["POST /tools/scan<br/><i>Privilege scanner</i>"]
     end
@@ -413,20 +410,15 @@ Every request passes through the same pipeline: edge security → authentication
 ```mermaid
 sequenceDiagram
     actor User
-    participant CF as Cloudflare
-    participant TF as Traefik
-    participant AK as Authentik
+    participant AK as Identity Proxy
     participant API as Express API
     participant MW as Middleware
     participant LLM as AI Engine
     participant RAG as RAG Layer
     participant DB as PostgreSQL
 
-    User->>CF: HTTPS Request
-    CF->>TF: Tunnel (encrypted)
-    TF->>AK: ForwardAuth check
-    AK-->>TF: X-Authentik-* headers
-    TF->>API: Request + auth headers
+    User->>AK: HTTPS Request
+    AK-->>API: Request + identity headers
 
     API->>MW: Auth middleware
     MW->>DB: Upsert user from headers
@@ -444,7 +436,7 @@ sequenceDiagram
         LLM-->>API: Structured JSON response
         API->>DB: Store chat message + update summaries
     else CRUD Endpoint
-        API->>DB: Query/mutate (firm-scoped)
+        API->>DB: Query/mutate (per-case)
         DB-->>API: Result
     end
 
@@ -455,39 +447,31 @@ sequenceDiagram
 
 ## Security Model
 
-Access control relies on the network perimeter — the API is not directly exposed and trusts identity headers from the upstream proxy chain. There is no application-layer cryptographic verification (no JWT, no HMAC, no mTLS). Security depends on Cloudflare Tunnel and Traefik preventing unauthorized access and header forgery.
+Containerized service deployed behind an identity proxy. The API is not directly exposed and trusts identity headers from the upstream proxy. There is no application-layer cryptographic verification (no JWT, no HMAC, no mTLS).
 
 ```mermaid
 flowchart TB
-    subgraph PERIMETER["Network Perimeter"]
-        direction TB
-        A["No open ports<br/><i>Cloudflare Tunnel only</i>"]
-        B["DDoS mitigation<br/><i>Cloudflare</i>"]
-        C["TLS 1.3 termination<br/><i>Traefik with wildcard certs</i>"]
-    end
-
     subgraph IDENTITY["Identity & Access"]
         direction TB
         D["SSO via Authentik<br/><i>ForwardAuth on every request</i>"]
-        E["Header-based auth<br/><i>API trusts X-Authentik-* headers</i>"]
+        E["Header-based auth<br/><i>API trusts identity headers</i>"]
         F["Role stored per user<br/><i>ADMIN · MEMBER · VIEWER</i>"]
     end
 
-    subgraph DATA_SEC["Data Isolation"]
+    subgraph DATA_SEC["Data Separation"]
         direction TB
-        G["Firm-scoped queries<br/><i>All DB queries filtered by firmId</i>"]
+        G["Per-case queries<br/><i>All DB queries filtered by firmId</i>"]
         H["Action audit logging<br/><i>User · Action · Resource · IP</i>"]
         I["Path traversal protection<br/><i>Storage service sanitization</i>"]
     end
 
-    PERIMETER --> IDENTITY --> DATA_SEC
+    IDENTITY --> DATA_SEC
 
-    style PERIMETER fill:#7f1d1d,stroke:#ef4444,color:#fecaca
     style IDENTITY fill:#78350f,stroke:#f59e0b,color:#fef3c7
     style DATA_SEC fill:#14532d,stroke:#10b981,color:#d1fae5
 ```
 
-**Current security limitations:**
+**Current limitations:**
 - No JWT signature verification or HMAC at the application layer
 - RBAC enforcement is minimal — only case deletion checks for Admin role
 - Audit log records actions but not before/after state values
@@ -561,9 +545,7 @@ flowchart TB
 | AI (Primary) | Google Gemini Pro/Flash | Complex reasoning + chat |
 | AI (Fallback) | Ollama + Llama 3.1:8b | Local inference, offline capability |
 | Embeddings | Google Embedding API | 768-dim document vectors |
-| Auth | Authentik SSO via Traefik ForwardAuth | Identity proxy (header-based) |
-| Reverse Proxy | Traefik v3 | TLS, routing, auth middleware |
-| Edge | Cloudflare Tunnel | Secure ingress, no open ports |
+| Auth | Authentik SSO via ForwardAuth | Identity proxy (header-based) |
 | Storage | NAS-mounted filesystem | Document persistence |
 | Containerization | Docker + Docker Compose | Deployment + isolation |
 

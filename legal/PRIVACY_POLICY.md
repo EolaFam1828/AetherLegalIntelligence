@@ -13,8 +13,8 @@ Aether acts as a **Data Processor** acting at the direction of the User (Data Co
 * **No Third-Party Training:** Aether **does NOT** use your Case Data to train general-purpose foundation models (e.g., Google Gemini/Vertex AI) without your explicit written consent.
 
 ## 3. DATA STORAGE & SECURITY
-* **Encryption:** Data is encrypted in transit (TLS 1.3). Storage encryption depends on the host filesystem configuration.
-* **Infrastructure:** Containerized deployment (Docker) behind an identity proxy (Cloudflare Tunnel, Traefik, Authentik SSO). No open ports exposed to the internet.
+* **Encryption:** Data is encrypted in transit. Storage encryption depends on the host filesystem configuration.
+* **Infrastructure:** Containerized deployment behind an identity proxy. Not directly exposed to the internet.
 * **Audit Logging:** Mutating API actions are logged (user, action, resource, timestamp). Logs capture actions but not before/after data state.
 
 ## 4. DATA RETENTION & DELETION
