@@ -21,7 +21,7 @@ flowchart TB
     end
 
     subgraph API["Application Layer"]
-        EX["Express.js API Server<br/><i>TypeScript · 34 endpoints</i>"]
+        EX["Express.js API Server<br/><i>TypeScript · 36+ endpoints</i>"]
         MW["Middleware Stack<br/><i>Auth · Audit · Validation</i>"]
     end
 
@@ -38,7 +38,7 @@ flowchart TB
     end
 
     subgraph DATA["Data Layer"]
-        PG["PostgreSQL 16<br/><i>Prisma ORM · 11 models</i>"]
+        PG["PostgreSQL 16<br/><i>Prisma ORM · 13 models</i>"]
         FS["NAS-Mounted Storage<br/><i>Document files · Uploads</i>"]
     end
 
@@ -179,19 +179,20 @@ flowchart LR
 
 ## Document Processing Pipeline
 
-Every document upload triggers an asynchronous, fire-and-forget processing pipeline:
+Every document upload triggers an asynchronous processing pipeline with tracked job lifecycle:
 
 ```mermaid
 flowchart LR
     UPLOAD["Document<br/>Upload"] --> SAVE["Save to<br/>Storage"]
-    SAVE --> RESPOND["Return to<br/>User"]
-    SAVE --> ASYNC["Async Pipeline"]
+    SAVE --> JOB["Create<br/>DocumentJob"]
+    JOB --> RESPOND["Return jobId<br/>to User"]
+    JOB --> ASYNC["Async Pipeline"]
 
-    subgraph ASYNC["Background Processing"]
+    subgraph ASYNC["Background Processing (Tracked)"]
         direction TB
         TEXT["Text Extraction"]
         ANALYZE["AI Analysis<br/><i>Key facts · Legal issues</i>"]
-        TIMELINE["Timeline Events<br/><i>Auto-created from dates</i>"]
+        TIMELINE["Timeline Events<br/><i>Auto-created with<br/>source traceability</i>"]
         VECTORS["Vector Embeddings<br/><i>Chunk + embed for RAG</i>"]
 
         TEXT --> ANALYZE --> TIMELINE --> VECTORS
@@ -218,6 +219,8 @@ erDiagram
     CASE ||--o{ CHAT_MESSAGE : "logs"
     CASE ||--o{ CONVERSATION_SUMMARY : "summarizes"
     DOCUMENT ||--o{ DOCUMENT_CHUNK : "embedded as"
+    DOCUMENT ||--o{ DOCUMENT_JOB : "tracked by"
+    DOCUMENT ||--o{ EVENT : "source of"
 
     FIRM {
         uuid id PK
@@ -287,6 +290,16 @@ erDiagram
         boolean isVerified
         boolean isDeadline
         uuid caseId FK
+        uuid sourceDocumentId FK "nullable"
+    }
+
+    DOCUMENT_JOB {
+        uuid id PK
+        uuid documentId FK
+        string status "queued | processing | completed | failed"
+        text error "nullable"
+        timestamp startedAt
+        timestamp completedAt
     }
 
     NOTE {
@@ -330,7 +343,7 @@ erDiagram
 
 ## API Surface
 
-34 RESTful endpoints organized by domain. Every mutating endpoint writes to the audit log.
+36+ RESTful endpoints organized by domain. Every mutating endpoint writes to the audit log. All POST endpoints validated via Zod schemas.
 
 ```mermaid
 flowchart TB

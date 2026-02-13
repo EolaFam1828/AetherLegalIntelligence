@@ -2,7 +2,7 @@
 
 **AI-native case intelligence for complex litigation.** Aether transforms raw litigation data — pleadings, depositions, discovery productions, expert reports — into structured, actionable intelligence a decision-maker can consume in minutes.
 
-Built as a full-stack production system with 13 integrated modules, 34 API endpoints, multi-model AI routing, RAG-powered semantic search, and zero-trust security.
+Built as a full-stack production system with 14 integrated modules, 36+ API endpoints, multi-model AI routing, RAG-powered semantic search, and zero-trust security.
 
 ---
 
@@ -22,7 +22,8 @@ Built as a full-stack production system with 13 integrated modules, 34 API endpo
 | **Privilege Scanner** | Flags attorney-client privilege and work product before production |
 | **Document Intelligence** | Vision-based document analysis with automatic text extraction, AI analysis, timeline event creation, and vector embedding generation |
 | **Semantic Search** | RAG pipeline with vector embeddings — cosine similarity search across all case documents for context-aware AI responses |
-| **Timeline Tracking** | Chronological event management with deadline alerting |
+| **Executive Case Brief** | One-screen posture summary: status, jurisdiction, critical deadlines with countdown, discovery status, document breakdown, risk signals, and recent activity |
+| **Timeline Tracking** | Chronological event management with deadline alerting and source document traceability |
 | **Case Management** | Multi-tenant case organization with party tracking, document management, and notes |
 
 > **[Full feature documentation](FEATURES.md)**

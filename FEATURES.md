@@ -15,8 +15,11 @@ Upload and analyze legal documents using vision-based AI. Supports PDFs, images,
 ### Semantic Search (RAG)
 All uploaded documents are chunked into semantically meaningful segments and embedded as 768-dimensional vectors using Google's embedding model. When any AI module processes a query, the system retrieves the most relevant document chunks via cosine similarity search (pgvector), injecting precise source material into the AI context. This ensures AI responses are grounded in the actual case record rather than relying solely on model knowledge.
 
+### Executive Case Brief
+One-screen executive summary answering five questions about any case: What's the posture? What deadlines are critical? Where does discovery stand? What are the risk signals? What needs attention? Aggregates case data (status, jurisdiction, court, judge), upcoming deadlines with countdown, discovery metrics, document breakdown by category, party summary, risk signals (overdue deadlines, unverified events), and recent activity — all without an AI call (pure data aggregation for instant response).
+
 ### Timeline Tracking
-Chronological event management with deadline flagging. Events can be marked as verified or unverified, tagged by type (filing, hearing, deposition, deadline, general), and surfaced in case briefings. Deadline events drive urgency signals in strategy analysis.
+Chronological event management with deadline flagging. Events can be marked as verified or unverified, tagged by type (filing, hearing, deposition, deadline, general), and surfaced in case briefings. Auto-extracted events include source document traceability, linking each event back to the document it was extracted from. Deadline events drive urgency signals in strategy analysis.
 
 ---
 
@@ -87,14 +90,15 @@ Scans documents for attorney-client privilege and work product indicators. Flags
 
 ## Document Processing Pipeline
 
-Every document upload triggers an automatic, asynchronous processing pipeline:
+Every document upload triggers an automatic, asynchronous processing pipeline with tracked job lifecycle (queued → processing → completed/failed):
 
-1. **Text Extraction** — Content is extracted from PDF, image, and text files
-2. **AI Analysis** — The extracted text is analyzed by the AI engine for key facts, legal issues, and relevant entities
-3. **Timeline Event Creation** — Significant dates and events identified in the document are automatically added to the case timeline
-4. **Vector Embedding** — The document is split into semantically coherent chunks (sentence-boundary-aware) and each chunk is embedded as a 768-dimensional vector for RAG retrieval
+1. **Job Creation** — A `DocumentJob` record is created and the job ID returned to the client for status polling
+2. **Text Extraction** — Content is extracted from PDF, image, and text files
+3. **AI Analysis** — The extracted text is analyzed by the AI engine for key facts, legal issues, and relevant entities
+4. **Timeline Event Creation** — Significant dates and events identified in the document are automatically added to the case timeline with source document traceability (each event links back to its source document)
+5. **Vector Embedding** — The document is split into semantically coherent chunks (sentence-boundary-aware) and each chunk is embedded as a 768-dimensional vector for RAG retrieval
 
-This pipeline runs in the background after upload — users see their document immediately while processing completes asynchronously.
+This pipeline runs in the background after upload — users see their document immediately and can poll `GET /documents/:id/processing-status` for progress. All request bodies are validated via Zod schemas before processing.
 
 ---
 
