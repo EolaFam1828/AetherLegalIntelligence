@@ -22,10 +22,10 @@ Aether is an internal workflow support system for document organization, summari
 | **War Room** | Structured SWOT analysis: strengths, weaknesses, opportunities, threats, recommended actions, settlement considerations |
 | **Red Team Audit** | AI-generated vulnerability matrix — severity scoring, exploit strategies, recommended defenses, referenced case law |
 | **Discovery Generator** | Draft interrogatories, RFPs, and RFAs with strategic purpose annotations (attorney review and formatting required) |
-| **Document Drafting** | AI-generated draft text for motions, briefs, and correspondence — iterative refinement supported (no export, no versioning) |
-| **Citation Verification** | LLM-based plausibility check for legal citations — flags suspicious or likely fabricated references (not external database verification) |
-| **Hearing Simulator** | Practice oral arguments against an AI judge or opposing counsel persona with voice or text input (OpenAI Whisper transcription) |
-| **Deposition Simulator** | Practice depositions against hostile AI opposing counsel with voice or text input (OpenAI Whisper transcription) |
+| **Document Drafting** | AI-generated draft text for motions, briefs, and correspondence — iterative refinement supported, versioned via intelligence persistence (no export) |
+| **Citation Verification** | LLM-based plausibility check for legal citations — flags suspicious or likely fabricated references (not external database verification). Citations persisted with status tracking |
+| **Hearing Simulator** | Practice oral arguments against an AI judge or opposing counsel persona with voice or text input (OpenAI Whisper transcription). Sessions persisted with transcript and coaching notes |
+| **Deposition Simulator** | Practice depositions against hostile AI opposing counsel with voice or text input (OpenAI Whisper transcription). Sessions persisted with transcript history |
 | **Settlement Analysis Assistant** | AI-generated settlement scenario discussion with supporting rationale — not financial or legal advice |
 | **Privilege Scanner** | AI-based first-pass scan for attorney-client privilege and work product indicators |
 | **Document Intelligence** | Document text extraction and AI-assisted analysis (PDF, Office, text), with timeline event creation and vector embedding. Unsupported file types rejected at upload |
@@ -33,12 +33,16 @@ Aether is an internal workflow support system for document organization, summari
 | **Executive Case Brief** | One-screen posture summary: status, deadlines, discovery status, document breakdown, risk signals (pure data aggregation, no AI call) |
 | **Timeline Tracking** | Chronological event management with timeline, month calendar, and week calendar views — deadline alerting and source document linking |
 | **Case Management** | Per-case data separation with party tracking, document management, notes, and case archiving (soft-delete with restore) |
+| **Intelligence Persistence** | All AI module outputs versioned as CaseAnalysis records with input hash deduplication, staleness detection, and cross-module dependency tracking |
+| **Case Signals** | Pre-computed case health metrics (overdue deadlines, unverified events, risk levels) injected into every AI prompt and used for staleness detection |
+| **Recalibration Engine** | Reactive staleness detection — when case data changes, affected analyses are automatically flagged as stale with severity levels (minor, stale, critical) |
+| **Knowledge Graph** | Lightweight directed graph of relationships between case entities (supports, contradicts, mentions) written by AI modules and queryable via API |
 
 > **[Full feature documentation with limitations](FEATURES.md)**
 
 ## Architecture
 
-Multi-model AI engine with task-based routing, RAG-powered semantic search, conversation memory with automatic summarization, per-case data separation, SSO authentication, and action audit logging. Containerized service deployed behind an identity proxy.
+Multi-model AI engine with task-based routing, RAG-powered semantic search, conversation memory with automatic summarization, per-case data separation, SSO authentication, action audit logging, and a full intelligence persistence layer with versioned analyses, signal-driven staleness detection, cross-module context assembly, and a knowledge graph. Containerized service deployed behind an identity proxy.
 
 > **[System architecture with diagrams](ARCHITECTURE.md)** — includes data model, AI engine, RAG pipeline, request lifecycle, security model, and deployment topology.
 
@@ -47,12 +51,13 @@ Multi-model AI engine with task-based routing, RAG-powered semantic search, conv
 | Layer | Technology |
 |-------|-----------|
 | Frontend | React 19, TypeScript, Vite, Tailwind CSS |
-| Backend | Express.js, TypeScript, Prisma ORM |
+| Backend | Express.js, TypeScript, Prisma ORM (25 models, 63 endpoints) |
 | Database | PostgreSQL 16, pgvector extension |
 | AI (Primary) | Google Gemini Pro (strategy, audit, drafting) · Gemini Flash (chat, simulation) |
 | AI (Fallback) | Ollama + Llama 3.1 — local inference when Gemini is unavailable |
 | Embeddings | Google Embedding API (768-dimensional vectors) |
 | Transcription | OpenAI Whisper API (whisper-1) — voice input for simulators |
+| Intelligence | Versioned analysis persistence, signal computation, recalibration engine, knowledge graph, input hash deduplication |
 | Auth | Authentik SSO via Traefik ForwardAuth (header-based, no JWT) |
 | Infrastructure | Containerized, deployed behind an identity proxy |
 
@@ -62,7 +67,7 @@ Multi-model AI engine with task-based routing, RAG-powered semantic search, conv
 - **No external legal research.** Citation verification is LLM-based plausibility checking, not Westlaw/LexisNexis lookup. "Verified" means the LLM is confident, not that the citation is confirmed.
 - **No document export.** AI-generated drafts, discovery requests, and analyses are viewable in the UI only — no DOCX or PDF download.
 - **No page-level traceability.** Extracted events link to source documents but not to specific pages or quotes within them.
-- **No version history.** Drafts and analyses are not versioned. Refinement replaces the prior output.
+- **Analysis versioning is backend-only.** AI analyses are versioned in the database with full version chains, but the UI does not yet expose version history navigation or diff views.
 - **Limited access control.** Auth is header-based via identity proxy — no application-layer JWT or HMAC verification. RBAC roles are stored but enforcement is minimal.
 - **No job retries.** Failed document processing jobs must be re-triggered by re-uploading.
 

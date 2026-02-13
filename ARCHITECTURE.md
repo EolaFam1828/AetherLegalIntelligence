@@ -19,7 +19,7 @@ flowchart TB
     end
 
     subgraph API["Application Layer"]
-        EX["Express.js API Server<br/><i>TypeScript · 42 endpoints</i>"]
+        EX["Express.js API Server<br/><i>TypeScript · 63 endpoints · 9 route modules</i>"]
         MW["Middleware Stack<br/><i>Auth · Audit · Validation</i>"]
     end
 
@@ -30,31 +30,119 @@ flowchart TB
         OL["Ollama (Local)<br/><i>Llama 3.1 · Fallback</i>"]
     end
 
+    subgraph INTEL["Intelligence Layer"]
+        CTX["Context Assembler<br/><i>8-layer enriched context<br/>Cross-module intelligence</i>"]
+        SIG["Signals Engine<br/><i>QUERY + HEURISTIC metrics<br/>Prompt injection</i>"]
+        PERSIST["Analysis Persistence<br/><i>Versioned CaseAnalysis<br/>Input hash deduplication</i>"]
+        RECAL["Recalibration Engine<br/><i>Staleness detection<br/>60s debouncing</i>"]
+    end
+
     subgraph VECTOR["RAG Layer"]
         EMB["Embedding Service<br/><i>768-dim vectors</i>"]
         PGV["pgvector<br/><i>Cosine similarity search</i>"]
     end
 
     subgraph DATA["Data Layer"]
-        PG["PostgreSQL 16<br/><i>Prisma ORM · 13 models</i>"]
+        PG["PostgreSQL 16<br/><i>Prisma ORM · 25 models</i>"]
         FS["NAS-Mounted Storage<br/><i>Document files · Uploads</i>"]
     end
 
     UI -->|HTTPS| AK
     AK -->|ForwardAuth| EX
-    EX --> MW --> RT
+    EX --> MW --> CTX
+    CTX --> SIG
+    CTX --> RT
     RT --> G3P & G3F & OL
+    G3P & G3F & OL --> PERSIST
+    PERSIST --> RECAL
     EX --> EMB --> PGV
     PGV --> PG
     EX --> PG & FS
+    RECAL --> SIG
 
     style CLIENT fill:#1e293b,stroke:#3b82f6,color:#e2e8f0
     style EDGE fill:#1e293b,stroke:#f59e0b,color:#e2e8f0
     style API fill:#1e293b,stroke:#10b981,color:#e2e8f0
     style AI fill:#1e293b,stroke:#8b5cf6,color:#e2e8f0
+    style INTEL fill:#1e293b,stroke:#f97316,color:#e2e8f0
     style VECTOR fill:#1e293b,stroke:#06b6d4,color:#e2e8f0
     style DATA fill:#1e293b,stroke:#ef4444,color:#e2e8f0
 ```
+
+---
+
+## Intelligence Architecture
+
+The intelligence layer persists, versions, and interconnects all AI module outputs. Every analysis is stored as a `CaseAnalysis` record with full version chains, input hashing for deduplication, and signal snapshots for staleness detection.
+
+```mermaid
+flowchart TB
+    subgraph CONTEXT["Context Assembly (8 Layers)"]
+        direction TB
+        L1["1. Signal Header<br/><i>~150 tokens of pre-computed metrics</i>"]
+        L2["2. Case Metadata<br/><i>Status, jurisdiction, parties</i>"]
+        L3["3. Rolling Artifacts<br/><i>Latest Strategy, Red Team, etc.</i>"]
+        L4["4. Document Summaries"]
+        L5["5. Parties + Timeline"]
+        L6["6. Cross-Module Intelligence<br/><i>Dependency graph reads</i>"]
+        L7["7. RAG Chunks<br/><i>Query-relevant documents</i>"]
+        L8["8. Previous Analysis<br/><i>For refinement continuity</i>"]
+    end
+
+    subgraph SIGNALS["Signals Layer"]
+        QUERY_SIG["QUERY Signals<br/><i>DB aggregations:<br/>overdue deadlines, doc count,<br/>unverified events</i>"]
+        HEUR_SIG["HEURISTIC Signals<br/><i>Weighted composites:<br/>RISK_LEVEL = overdue×30 +<br/>openVuln×20 + critical×15</i>"]
+    end
+
+    subgraph PERSIST["Persistence"]
+        HASH["Input Hash (SHA-256)<br/><i>Skip LLM if unchanged</i>"]
+        VERSION["Atomic Versioning<br/><i>CURRENT → SUPERSEDED<br/>New version created</i>"]
+        SNAP["Signal Snapshot<br/><i>Stored with each analysis</i>"]
+    end
+
+    subgraph RECALIB["Recalibration"]
+        TRIGGER["Data Mutation Triggers<br/><i>Document upload, party edit,<br/>event change, note added</i>"]
+        COMPARE["Signal Comparison<br/><i>Current vs. snapshot</i>"]
+        STALE["Staleness Marking<br/><i>MINOR_CHANGE · STALE · CRITICAL</i>"]
+        DEBOUNCE["60s Debouncer<br/><i>Batch rapid-fire mutations</i>"]
+    end
+
+    CONTEXT --> HASH
+    HASH -->|new context| VERSION
+    HASH -->|same hash| CACHED["Return Cached Result"]
+    SIGNALS --> L1
+    VERSION --> SNAP
+    TRIGGER --> DEBOUNCE --> COMPARE --> STALE
+
+    style CONTEXT fill:#1e293b,stroke:#f97316,color:#e2e8f0
+    style SIGNALS fill:#1e293b,stroke:#eab308,color:#e2e8f0
+    style PERSIST fill:#1e293b,stroke:#8b5cf6,color:#e2e8f0
+    style RECALIB fill:#1e293b,stroke:#ef4444,color:#e2e8f0
+```
+
+### Cross-Module Dependencies
+
+Each AI module reads from other modules' latest outputs to build enriched context. The dependency graph ensures that Strategy reads Red Team findings, Discovery reads Strategy priorities, and so on:
+
+| Module | Reads From |
+|--------|-----------|
+| **Strategy** | Red Team, Discovery Backlog, Valuation, Case Theory Map |
+| **Red Team** | Strategy, Case Theory Map |
+| **Discovery** | Strategy, Red Team, Key Exhibits |
+| **Valuation** | Strategy, Red Team, Discovery Backlog |
+| **Draft** | Strategy, Discovery, Case Theory Map |
+| **Citation Check** | (standalone — no cross-module reads) |
+
+### Knowledge Graph
+
+A lightweight directed graph (`GraphEdge` table) connects case entities with typed relationships. AI modules write edges during analysis; other modules query them for enriched context.
+
+| Edge Type | Meaning |
+|-----------|---------|
+| SUPPORTS | Entity A provides evidence for Entity B |
+| CONTRADICTS | Entity A conflicts with Entity B |
+| MENTIONS | Entity A references Entity B |
+| DERIVED_FROM | Entity A was generated based on Entity B |
 
 ---
 
@@ -188,7 +276,7 @@ flowchart LR
 
 ## Document Processing Pipeline
 
-Every document upload triggers an asynchronous processing pipeline with tracked job lifecycle:
+Every document upload triggers an asynchronous processing pipeline with tracked job lifecycle. On completion, the recalibration engine is notified to check for stale analyses.
 
 ```mermaid
 flowchart LR
@@ -207,6 +295,8 @@ flowchart LR
         TEXT --> ANALYZE --> TIMELINE --> VECTORS
     end
 
+    ASYNC --> RECALIB["Recalibration<br/><i>Signal recompute<br/>+ staleness check</i>"]
+
     style ASYNC fill:#1e293b,stroke:#8b5cf6,color:#e2e8f0
 ```
 
@@ -214,7 +304,7 @@ flowchart LR
 
 ## Data Model
 
-Multi-tenant architecture with firm-level data isolation, vector search, conversation memory, and action audit logging.
+Multi-tenant architecture with firm-level data isolation, vector search, conversation memory, intelligence persistence with versioned analyses, signal computation, knowledge graph, and action audit logging. 25 Prisma models across 9 migrations.
 
 ```mermaid
 erDiagram
@@ -227,9 +317,22 @@ erDiagram
     CASE ||--o{ NOTE : "stores"
     CASE ||--o{ CHAT_MESSAGE : "logs"
     CASE ||--o{ CONVERSATION_SUMMARY : "summarizes"
+    CASE ||--o{ CASE_ANALYSIS : "analyzes"
+    CASE ||--o{ CASE_SIGNAL : "measures"
+    CASE ||--o{ CASE_EVENT_LOG : "audits"
+    CASE ||--o{ GRAPH_EDGE : "connects"
+    CASE ||--o{ ANALYSIS_JOB : "queues"
+    CASE ||--o{ SIMULATION_SESSION : "simulates"
+    CASE ||--o{ CITATION_RECORD : "verifies"
     DOCUMENT ||--o{ DOCUMENT_CHUNK : "embedded as"
     DOCUMENT ||--o{ DOCUMENT_JOB : "tracked by"
     DOCUMENT ||--o{ EVENT : "source of"
+    CASE_ANALYSIS ||--o{ STRATEGIC_PRIORITY : "produces"
+    CASE_ANALYSIS ||--o{ VULNERABILITY : "identifies"
+    CASE_ANALYSIS ||--o{ DISCOVERY_REQUEST : "generates"
+    CASE_ANALYSIS ||--o{ LEGAL_DRAFT : "drafts"
+    CASE_ANALYSIS ||--o{ ANALYSIS_PATCH : "patched by"
+    CASE_ANALYSIS ||--o| CASE_ANALYSIS : "supersedes"
 
     FIRM {
         uuid id PK
@@ -259,6 +362,91 @@ erDiagram
         timestamp archivedAt "nullable"
         uuid userId FK
         uuid firmId FK
+    }
+
+    CASE_ANALYSIS {
+        uuid id PK
+        uuid caseId FK
+        enum moduleType "STRATEGY | RED_TEAM | DISCOVERY | etc."
+        boolean isRolling
+        int version
+        enum status "CURRENT | STALE | SUPERSEDED | ARCHIVED"
+        enum stalenessLevel "FRESH | MINOR_CHANGE | STALE | CRITICAL"
+        text staleReason
+        json output
+        text summary
+        string inputHash "SHA-256 for deduplication"
+        text inputSnapshot
+        json signalsSnapshot "For staleness comparison"
+        enum triggerType "MANUAL | AUTO | CASCADE | REFINEMENT"
+        uuid parentId FK "Version chain"
+        text focusArea
+        string generatedBy
+        string promptVersion
+    }
+
+    CASE_SIGNAL {
+        uuid id PK
+        uuid caseId FK
+        string key UK
+        json valueJson
+        string displayValue
+        text explanation
+        enum computeMethod "QUERY | HEURISTIC | LLM"
+    }
+
+    GRAPH_EDGE {
+        uuid id PK
+        uuid caseId FK
+        string sourceNodeType
+        string sourceNodeId
+        string edgeType "SUPPORTS | CONTRADICTS | MENTIONS"
+        string targetNodeType
+        string targetNodeId
+        float confidence
+    }
+
+    STRATEGIC_PRIORITY {
+        uuid id PK
+        uuid caseId FK
+        uuid analysisId FK
+        string title
+        text rationale
+        int sequenceOrder
+        enum status "PLANNED | IN_PROGRESS | EXECUTED"
+    }
+
+    VULNERABILITY {
+        uuid id PK
+        uuid caseId FK
+        uuid analysisId FK
+        string title
+        enum severity "CRITICAL | HIGH | MODERATE | LOW"
+        string category
+        text attackVector
+        text recommendedDefense
+        enum status "OPEN | MITIGATED | ACCEPTED | RESOLVED"
+    }
+
+    DISCOVERY_REQUEST {
+        uuid id PK
+        uuid caseId FK
+        uuid analysisId FK
+        enum requestType "INTERROGATORY | RFP | RFA"
+        int sequenceNumber
+        text content
+        enum status "DRAFT | APPROVED | SENT | etc."
+    }
+
+    LEGAL_DRAFT {
+        uuid id PK
+        uuid caseId FK
+        uuid analysisId FK
+        string documentType
+        string title
+        text content
+        int version
+        enum status "DRAFT | REVIEWED | FINALIZED | FILED"
     }
 
     DOCUMENT {
@@ -302,37 +490,39 @@ erDiagram
         uuid sourceDocumentId FK "nullable"
     }
 
-    DOCUMENT_JOB {
-        uuid id PK
-        uuid documentId FK
-        string status "queued | processing | completed | failed"
-        text error "nullable"
-        timestamp startedAt
-        timestamp completedAt
-    }
-
-    NOTE {
-        uuid id PK
-        string title
-        text content
-        string category
-        uuid caseId FK
-    }
-
-    CHAT_MESSAGE {
+    SIMULATION_SESSION {
         uuid id PK
         uuid caseId FK
+        enum simulationType "HEARING | DEPOSITION"
+        string persona
+        json transcript
+        json coachingNotes
+    }
+
+    CITATION_RECORD {
+        uuid id PK
+        uuid caseId FK
+        string citation
+        enum status "VERIFIED | SUSPICIOUS | LIKELY_FABRICATED"
+        float confidence
+    }
+
+    ANALYSIS_JOB {
+        uuid id PK
+        uuid caseId FK
+        enum moduleType
+        enum status "QUEUED | PROCESSING | COMPLETED | FAILED"
+        int priority "1-5"
+        enum triggerType
+    }
+
+    CASE_EVENT_LOG {
+        uuid id PK
+        uuid caseId FK
+        string eventType
+        json payload
         string userId
-        string role
-        text content
-    }
-
-    CONVERSATION_SUMMARY {
-        uuid id PK
-        uuid caseId FK
-        text summary
-        int messageCount
-        timestamp createdAt
+        timestamp timestamp
     }
 
     AUDIT_LOG {
@@ -352,29 +542,37 @@ erDiagram
 
 ## API Surface
 
-42 RESTful endpoints organized by domain. Every mutating endpoint writes to the audit log. All POST endpoints validated via Zod schemas.
+63 RESTful endpoints organized by domain across 9 route modules. Every mutating endpoint writes to the audit log. All POST endpoints validated via Zod schemas. CRUD mutations trigger the recalibration engine to detect stale analyses.
 
 ```mermaid
 flowchart TB
-    subgraph AUTH["Auth"]
+    subgraph AUTH["Auth — 1 endpoint"]
         A1["GET /auth/me"]
     end
 
     subgraph CASE_MGMT["Case Management — 25 endpoints"]
-        C1["CRUD /cases<br/><i>+ archive / restore</i>"]
+        C1["CRUD /cases<br/><i>+ archive / restore / brief</i>"]
         C2["CRUD /cases/:id/parties"]
         C3["CRUD /cases/:id/documents"]
         C4["CRUD /cases/:id/events"]
         C5["CRUD /cases/:id/notes"]
     end
 
-    subgraph AI_INTEL["AI Intelligence — 10 endpoints"]
+    subgraph AI_INTEL["AI Intelligence — 9 endpoints"]
         I1["POST /chat<br/><i>Context-aware legal advisor<br/>+ RAG retrieval + memory</i>"]
         I2["POST /strategy<br/><i>War Room SWOT analysis</i>"]
         I3["POST /audit<br/><i>Red Team vulnerability scan</i>"]
         I4["POST /discovery<br/><i>Generate interrogatories,<br/>RFPs, RFAs</i>"]
         I5["POST /draft<br/><i>Motion & brief drafting</i>"]
         I6["POST /verify-citations<br/><i>LLM citation plausibility check</i>"]
+    end
+
+    subgraph INTEL_API["Intelligence Persistence — 21 endpoints"]
+        IA1["GET /analyses<br/><i>Versioned analysis history<br/>per module</i>"]
+        IA2["GET/POST /signals<br/><i>Case health metrics<br/>+ force recompute</i>"]
+        IA3["GET /graph<br/><i>Knowledge graph edges<br/>with filtering</i>"]
+        IA4["GET/PATCH /priorities<br/>vulnerabilities · drafts<br/>discovery-requests · citations"]
+        IA5["GET /jobs · /event-log<br/>simulations"]
     end
 
     subgraph SIMULATION["Simulation — 3 endpoints"]
@@ -398,6 +596,7 @@ flowchart TB
     style AUTH fill:#334155,stroke:#64748b,color:#e2e8f0
     style CASE_MGMT fill:#1e3a5f,stroke:#3b82f6,color:#e2e8f0
     style AI_INTEL fill:#3b1d6e,stroke:#8b5cf6,color:#e2e8f0
+    style INTEL_API fill:#4a1d0f,stroke:#f97316,color:#e2e8f0
     style SIMULATION fill:#5b2120,stroke:#ef4444,color:#e2e8f0
     style TOOLS fill:#1a3a2a,stroke:#10b981,color:#e2e8f0
     style ADMIN fill:#164e63,stroke:#06b6d4,color:#e2e8f0
@@ -407,7 +606,7 @@ flowchart TB
 
 ## Request Lifecycle
 
-Every request passes through the same pipeline: edge security → authentication → audit → processing.
+Every request passes through the same pipeline: edge security → authentication → audit → processing. AI module requests additionally go through the intelligence layer for context assembly, deduplication, persistence, and recalibration.
 
 ```mermaid
 sequenceDiagram
@@ -415,7 +614,9 @@ sequenceDiagram
     participant AK as Identity Proxy
     participant API as Express API
     participant MW as Middleware
+    participant CTX as Context Assembler
     participant LLM as AI Engine
+    participant PERSIST as Intelligence Service
     participant RAG as RAG Layer
     participant DB as PostgreSQL
 
@@ -427,19 +628,26 @@ sequenceDiagram
     DB-->>MW: User + firm context
     MW->>MW: Audit log write
 
-    alt AI Endpoint
-        API->>DB: Fetch case context + documents
-        DB-->>API: Case data
-        API->>RAG: Embed query + retrieve chunks
-        RAG-->>API: Relevant document chunks
-        API->>DB: Fetch conversation history + summaries
-        DB-->>API: Memory context
-        API->>LLM: System prompt + case context + RAG chunks + memory + user query
-        LLM-->>API: Structured JSON response
-        API->>DB: Store chat message + update summaries
+    alt AI Module Endpoint
+        API->>CTX: Build enriched context (8 layers)
+        CTX->>DB: Fetch signals, rolling artifacts, cross-module outputs
+        CTX->>RAG: Embed query + retrieve chunks
+        RAG-->>CTX: Relevant document chunks
+        CTX-->>API: Context + input hash
+        API->>PERSIST: Check deduplication (SHA-256)
+        alt Hash matches existing analysis
+            PERSIST-->>API: Return cached result
+        else New context
+            API->>LLM: System prompt + enriched context + user query
+            LLM-->>API: Structured JSON response
+            API->>PERSIST: Persist analysis (atomic version chain)
+            PERSIST->>DB: Mark previous SUPERSEDED, create CURRENT
+            PERSIST->>DB: Recompute signals + check staleness
+        end
     else CRUD Endpoint
         API->>DB: Query/mutate (per-case)
         DB-->>API: Result
+        API->>DB: Trigger recalibration (debounced)
     end
 
     API-->>User: JSON Response
@@ -544,12 +752,13 @@ flowchart TB
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
 | Frontend | React 19, TypeScript, Vite, Tailwind CSS | Single-page application |
-| Backend | Express.js, TypeScript | REST API server |
-| Database | PostgreSQL 16, Prisma ORM, pgvector | Relational data + vector search |
+| Backend | Express.js, TypeScript | REST API server (63 endpoints, 9 route modules) |
+| Database | PostgreSQL 16, Prisma ORM, pgvector | 25 models, relational data + vector search |
 | AI (Primary) | Google Gemini Pro/Flash | Complex reasoning + chat |
 | AI (Fallback) | Ollama + Llama 3.1:8b | Local inference, offline capability |
 | Embeddings | Google Embedding API | 768-dim document vectors |
 | Transcription | OpenAI Whisper API (whisper-1) | Voice input for simulators |
+| Intelligence | Context assembler, signals, persistence, recalibration, knowledge graph | Versioned analysis with staleness detection |
 | Auth | Authentik SSO via ForwardAuth | Identity proxy (header-based) |
 | Storage | NAS-mounted filesystem | Document persistence |
 | Containerization | Docker + Docker Compose | Deployment + isolation |
