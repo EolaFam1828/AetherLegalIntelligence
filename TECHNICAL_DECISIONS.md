@@ -1,5 +1,6 @@
 # Technical Decisions — Aether Design Trade-offs
 
+> [!NOTE]
 > This document explains key technical decisions and trade-offs in the Aether platform. All information is derived from the documented architecture and limitations in [ARCHITECTURE.md](ARCHITECTURE.md) and [FEATURES.md](FEATURES.md).
 
 ---
@@ -391,3 +392,5 @@ Copyright 2026 Jake Sadoway. All rights reserved. Portfolio demonstration only.
 ---
 
 **[← Back to README](README.md)** | **[View Architecture →](ARCHITECTURE.md)** | **[View Features →](FEATURES.md)** | **[Security Model →](SECURITY.md)**
+
+<p align="right"><a href="#technical-decisions--aether-design-trade-offs">↑ Back to top</a></p>

@@ -1,6 +1,7 @@
 # Aether — System Architecture
 
-> **Portfolio Note:** This document describes the technical architecture of the Aether Litigation Intelligence Platform. This is a **documentation-only repository** — the production application is privately hosted.
+> [!NOTE]
+> **Portfolio Repository** — This document describes the technical architecture of the Aether Litigation Intelligence Platform. This is a **documentation-only repository** — the production application is privately hosted.
 
 > AI-assisted litigation intelligence platform. Case briefing, adversarial analysis, draft generation, and preparation tools — built for speed. All AI output requires attorney review.
 
@@ -336,6 +337,11 @@ flowchart LR
 
 Multi-tenant architecture with firm-level data isolation, vector search, conversation memory, intelligence persistence with versioned analyses, signal computation, knowledge graph, and action audit logging. 25 Prisma models across 9 migrations.
 
+<details>
+<summary><strong>View complete data model diagram</strong> — 25 Prisma models with relationships</summary>
+
+<br />
+
 ```mermaid
 erDiagram
     FIRM ||--o{ USER : "has members"
@@ -568,11 +574,18 @@ erDiagram
     }
 ```
 
+</details>
+
 ---
 
 ## API Surface
 
 63 RESTful endpoints organized by domain across 9 route modules. Every mutating endpoint writes to the audit log. All POST endpoints validated via Zod schemas. CRUD mutations trigger the recalibration engine to detect stale analyses.
+
+<details>
+<summary><strong>View API surface diagram</strong> — 63 endpoints across 9 route modules</summary>
+
+<br />
 
 ```mermaid
 flowchart TB
@@ -631,6 +644,8 @@ flowchart TB
     style TOOLS fill:#1a3a2a,stroke:#10b981,color:#e2e8f0
     style ADMIN fill:#164e63,stroke:#06b6d4,color:#e2e8f0
 ```
+
+</details>
 
 ---
 
@@ -712,10 +727,12 @@ flowchart TB
 ```
 
 **Current limitations:**
-- No JWT signature verification or HMAC at the application layer
-- RBAC enforcement is minimal — only case deletion checks for Admin role
-- Audit log records actions but not before/after state values
-- No verification audit trail (who verified, when)
+
+> [!WARNING]
+> - No JWT signature verification or HMAC at the application layer
+> - RBAC enforcement is minimal — only case deletion checks for Admin role
+> - Audit log records actions but not before/after state values
+> - No verification audit trail (who verified, when)
 
 ---
 
@@ -802,3 +819,5 @@ Copyright 2026 Jake Sadoway. All rights reserved. This repository is shared for 
 ---
 
 **[← Back to README](README.md)** | **[View Features →](FEATURES.md)** | **[Implementation Details →](IMPLEMENTATION.md)** | **[Security Model →](SECURITY.md)**
+
+<p align="right"><a href="#aether--system-architecture">↑ Back to top</a></p>

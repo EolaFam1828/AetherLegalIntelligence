@@ -1,5 +1,6 @@
 # Security Model — Aether Authentication & Data Protection
 
+> [!NOTE]
 > This document describes the security architecture of the Aether platform. All information is derived from [ARCHITECTURE.md](ARCHITECTURE.md) and [FEATURES.md](FEATURES.md).
 
 ---
@@ -85,7 +86,10 @@ Three roles stored per user:
 | **MEMBER** | Standard access — no restrictions currently enforced |
 | **VIEWER** | Read-only access — not currently enforced |
 
-**Current limitation:** RBAC enforcement is minimal. Only case deletion checks for Admin role. Viewer restrictions are not enforced. Full RBAC enforcement is on the roadmap.
+**Current limitation:**
+
+> [!WARNING]
+> RBAC enforcement is minimal. Only case deletion checks for Admin role. Viewer restrictions are not enforced. Full RBAC enforcement is on the roadmap.
 
 ---
 
@@ -343,3 +347,5 @@ Copyright 2026 Jake Sadoway. All rights reserved. Portfolio demonstration only.
 ---
 
 **[← Back to README](README.md)** | **[View Architecture →](ARCHITECTURE.md)** | **[View Features →](FEATURES.md)** | **[Implementation Details →](IMPLEMENTATION.md)**
+
+<p align="right"><a href="#security-model--aether-authentication--data-protection">↑ Back to top</a></p>
