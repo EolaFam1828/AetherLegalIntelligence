@@ -19,7 +19,7 @@ All uploaded documents are chunked into semantically meaningful segments and emb
 One-screen summary answering five questions about any case: What's the posture? What deadlines are critical? Where does discovery stand? What are the risk signals? What needs attention? Aggregates case data (status, jurisdiction, court, judge), upcoming deadlines with countdown, discovery metrics, document breakdown by category, party summary, risk signals (overdue deadlines, unverified events), and recent activity — all without an AI call (pure data aggregation for instant response).
 
 ### Timeline Tracking
-Chronological event management with deadline flagging. Events can be marked as verified or unverified, tagged by type (filing, hearing, deposition, deadline, general), and surfaced in case briefings. Auto-extracted events are linked to their source document via `sourceDocumentId`. Deadline events drive urgency signals in case briefings.
+Chronological event management with deadline flagging. Events can be marked as verified or unverified, tagged by type (free-form string, commonly: filing, hearing, deposition, deadline, document, general), and surfaced in case briefings. Auto-extracted events are linked to their source document via `sourceDocumentId`. Deadline events drive urgency signals in case briefings.
 
 **Current limitations:** Extracted events link to the source document but do not store page numbers, source quotes, or confidence scores. Verification is a boolean toggle — no reviewer identity or timestamp is recorded. These are on the roadmap.
 
