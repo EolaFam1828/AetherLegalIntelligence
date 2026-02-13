@@ -207,8 +207,6 @@ flowchart TB
 
 ## ⚠️ What It Does NOT Do
 
-## ⚠️ What It Does NOT Do
-
 **Important Limitations:**
 
 | Limitation | Reality | Implication |
@@ -222,8 +220,6 @@ flowchart TB
 | **No job retries** | Failed document processing jobs must be re-triggered by re-uploading | Transient failures require manual intervention |
 
 > **[Complete limitations list → FEATURES.md](FEATURES.md#known-limitations)**
-
----
 
 ---
 
@@ -257,12 +253,9 @@ AetherLegalIntelligence/
 
 ## 👤 About
 
-## 👤 About
-
 **Jake Sadoway** — Stetson University '21, Orlando FL  
-Background in institutional development, grants compliance, and AI-driven workflow automation.
 
-This project demonstrates that litigation intelligence is a tractable engineering problem: raw case data in, structured analysis out — with the attorney always in the loop.
+Jake Sadoway is a litigation intelligence systems designer focused on retrieval, synthesis, and evidence workflows for complex matters. He builds tools that convert messy, high-volume case materials into structured, queryable knowledge. Pleadings, discovery, expert reports, transcripts, internal communications, and chronology all become connected artifacts rather than scattered files. His approach prioritizes traceability, security-minded architecture, and human verification. The objective is simple. Reduce time-to-understanding and increase confidence in what the record actually supports.
 
 ### Live Demo
 
