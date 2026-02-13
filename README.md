@@ -34,14 +34,14 @@
 
 ## Table of Contents
 
-- [Important Disclaimers](#%EF%B8%8F-important-disclaimers)
+- [Important Disclaimers](#-important-disclaimers)
 - [Documentation Navigation](#-documentation-navigation)
 - [What Is Aether?](#what-is-aether)
 - [Product Tour](#-product-tour)
 - [Core Capabilities](#core-capabilities)
 - [System Architecture](#system-architecture)
 - [Tech Stack](#tech-stack)
-- [What It Does NOT Do](#%EF%B8%8F-what-it-does-not-do)
+- [What It Does NOT Do](#-what-it-does-not-do)
 - [Repository Structure](#-repository-structure)
 - [About](#-about)
 - [Live Demo](#live-demo)
