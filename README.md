@@ -95,8 +95,6 @@ Visual walkthrough of Aether's interface and capabilities:
 
 ## Core Capabilities
 
-## Core Capabilities
-
 ### 17 Integrated Modules
 
 | Module | Capability | Status |
