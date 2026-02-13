@@ -1,3 +1,5 @@
+> **[← Back to README](../README.md)** | **[Terms of Service](TERMS_OF_SERVICE.md)** | **[Privacy Policy](PRIVACY_POLICY.md)** | **[MSA](MASTER_SERVICES_AGREEMENT.md)**
+
 # ACCEPTABLE USE POLICY (AUP)
 **Effective Date:** December 7, 2025
 **Version:** 1.0
@@ -55,3 +57,8 @@ For questions about this AUP: legal@eolagateway.net
 **BY USING AETHER, YOU AGREE TO COMPLY WITH THIS ACCEPTABLE USE POLICY.**
 
 **Last Updated:** December 7, 2025
+
+
+---
+
+**[← Back to README](../README.md)** | **[Terms of Service](TERMS_OF_SERVICE.md)** | **[Privacy Policy](PRIVACY_POLICY.md)** | **[MSA](MASTER_SERVICES_AGREEMENT.md)**

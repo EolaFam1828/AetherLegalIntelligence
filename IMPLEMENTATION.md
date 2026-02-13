@@ -1,5 +1,6 @@
 # Implementation Details — Aether Technical Architecture
 
+> [!NOTE]
 > This document summarizes the technical implementation of Aether's core systems. All information is derived from the system's documented architecture in [ARCHITECTURE.md](ARCHITECTURE.md) and [FEATURES.md](FEATURES.md).
 
 ---
@@ -346,3 +347,5 @@ Copyright 2026 Jake Sadoway. All rights reserved. Portfolio demonstration only.
 ---
 
 **[← Back to README](README.md)** | **[View Architecture →](ARCHITECTURE.md)** | **[View Features →](FEATURES.md)** | **[Security Model →](SECURITY.md)**
+
+<p align="right"><a href="#implementation-details--aether-technical-architecture">↑ Back to top</a></p>

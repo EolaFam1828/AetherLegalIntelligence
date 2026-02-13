@@ -1,3 +1,5 @@
+> **[← Back to README](../README.md)** | **[Terms of Service](TERMS_OF_SERVICE.md)** | **[Privacy Policy](PRIVACY_POLICY.md)** | **[Acceptable Use](ACCEPTABLE_USE_POLICY.md)**
+
 # MASTER SERVICES AGREEMENT (MSA)
 **Version:** 1.0
 **Effective Date:** December 7, 2025
@@ -52,3 +54,8 @@ Date: ___________________________
 
 ---
 **Last Updated:** December 7, 2025
+
+
+---
+
+**[← Back to README](../README.md)** | **[Terms of Service](TERMS_OF_SERVICE.md)** | **[Privacy Policy](PRIVACY_POLICY.md)** | **[Acceptable Use](ACCEPTABLE_USE_POLICY.md)**

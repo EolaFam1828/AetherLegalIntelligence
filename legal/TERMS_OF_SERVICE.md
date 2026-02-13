@@ -1,3 +1,5 @@
+> **[← Back to README](../README.md)** | **[Privacy Policy](PRIVACY_POLICY.md)** | **[Acceptable Use](ACCEPTABLE_USE_POLICY.md)** | **[MSA](MASTER_SERVICES_AGREEMENT.md)**
+
 # TERMS OF SERVICE
 **Effective Date:** December 7, 2025
 **Version:** 1.0
@@ -34,3 +36,8 @@ For questions about these Terms, contact: legal@eolagateway.net
 
 ---
 **Last Updated:** December 7, 2025
+
+
+---
+
+**[← Back to README](../README.md)** | **[Privacy Policy](PRIVACY_POLICY.md)** | **[Acceptable Use](ACCEPTABLE_USE_POLICY.md)** | **[MSA](MASTER_SERVICES_AGREEMENT.md)**
