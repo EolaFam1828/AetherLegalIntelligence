@@ -138,9 +138,7 @@ This repository contains documentation only. The working system is privately hos
 ## About the Author
 
 **Jake Sadoway** — Stetson University '21, Orlando FL  
-Background in institutional development, grants compliance, and AI-driven workflow automation.
-
-This project demonstrates that litigation intelligence is a tractable engineering problem: raw case data in, structured analysis out — with the attorney always in the loop.
+Jake Sadoway is the builder behind an AI-driven litigation intelligence platform designed to turn case files into decision-grade insight. He works at the intersection of litigation operations, structured evidence management, and applied machine learning. His focus is practical. Faster orientation on a case. Cleaner discovery workflows. Better issue spotting. More reliable timelines, exhibits, and posture summaries. Jake’s work emphasizes defensible process, human-in-the-loop review, and systems that help legal teams move with speed without sacrificing accuracy.
 
 ---
 
