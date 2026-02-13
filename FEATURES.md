@@ -10,7 +10,7 @@
 Organize cases with full party tracking, document management, timeline events, and notes. Multi-firm architecture with per-case data separation — all queries filtered by the authenticated user's firmId. Role fields (Admin / Member / Viewer) are stored per user; currently, only case deletion is restricted to Admin role. Other RBAC enforcement is on the roadmap.
 
 ### Document Intelligence
-Upload and analyze legal documents using document text extraction and AI-assisted analysis. Supports PDFs, images, and text files up to 50MB. On upload, documents are processed through an asynchronous background pipeline: text extraction, AI-powered analysis, timeline event creation, and vector embedding generation. Documents are categorized and stored on NAS-mounted persistent storage. All uploaded documents become part of the case context available to every AI module.
+Upload and analyze legal documents using document text extraction and AI-assisted analysis. Supports PDFs, Office documents (Word, Excel, PowerPoint, RTF), and text files up to 50MB. Unsupported file types are rejected at upload with a clear error message. On upload, documents are processed through an asynchronous background pipeline: text extraction, AI-powered analysis, timeline event creation, and vector embedding generation. Documents are categorized and stored on NAS-mounted persistent storage. All uploaded documents become part of the case context available to every AI module.
 
 ### Semantic Search (RAG)
 All uploaded documents are chunked into semantically meaningful segments and embedded as 768-dimensional vectors using Google's embedding model. When any AI module processes a query, the system retrieves the most relevant document chunks via cosine similarity search (pgvector), injecting source material into the AI context. This grounds AI responses in the actual case record rather than relying solely on model knowledge.
@@ -19,7 +19,7 @@ All uploaded documents are chunked into semantically meaningful segments and emb
 One-screen summary answering five questions about any case: What's the posture? What deadlines are critical? Where does discovery stand? What are the risk signals? What needs attention? Aggregates case data (status, jurisdiction, court, judge), upcoming deadlines with countdown, discovery metrics, document breakdown by category, party summary, risk signals (overdue deadlines, unverified events), and recent activity — all without an AI call (pure data aggregation for instant response).
 
 ### Timeline Tracking
-Chronological event management with deadline flagging. Events can be marked as verified or unverified, tagged by type (free-form string, commonly: filing, hearing, deposition, deadline, document, general), and surfaced in case briefings. Auto-extracted events are linked to their source document via `sourceDocumentId`. Deadline events drive urgency signals in case briefings.
+Chronological event management with three display modes: Timeline (chronological stream), Month Calendar, and Week Calendar. Events can be marked as verified or unverified, tagged by type (free-form string, commonly: filing, hearing, deposition, deadline, document, general), and surfaced in case briefings. Auto-extracted events are linked to their source document via `sourceDocumentId`. Deadline events drive urgency signals in case briefings. Calendar views provide spatial awareness of event density and deadline proximity.
 
 **Current limitations:** Extracted events link to the source document but do not store page numbers, source quotes, or confidence scores. Verification is a boolean toggle — no reviewer identity or timestamp is recorded. These are on the roadmap.
 
@@ -107,7 +107,7 @@ AI-based scan of document text for attorney-client privilege and work product in
 Every document upload triggers an asynchronous background pipeline with tracked job lifecycle (queued → processing → completed/failed):
 
 1. **Job Creation** — A `DocumentJob` record is created and the job ID returned to the client for status polling
-2. **Text Extraction** — Content is extracted from PDF, image, and text files
+2. **Text Extraction** — Content is extracted from PDF, Office documents, and text files
 3. **AI Analysis** — The extracted text is analyzed for key facts, legal issues, and relevant entities
 4. **Timeline Event Creation** — Dates and events identified in the document are added to the case timeline with a link to the source document
 5. **Vector Embedding** — The document is split into chunks (sentence-boundary-aware) and each chunk is embedded as a 768-dimensional vector for RAG retrieval

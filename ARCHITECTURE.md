@@ -19,7 +19,7 @@ flowchart TB
     end
 
     subgraph API["Application Layer"]
-        EX["Express.js API Server<br/><i>TypeScript · 36+ endpoints</i>"]
+        EX["Express.js API Server<br/><i>TypeScript · 40 endpoints</i>"]
         MW["Middleware Stack<br/><i>Auth · Audit · Validation</i>"]
     end
 
@@ -128,7 +128,7 @@ Documents are processed into vector embeddings for semantic retrieval, ensuring 
 ```mermaid
 flowchart TB
     subgraph INGEST["Document Ingestion"]
-        UPLOAD["Document Upload<br/><i>PDF · Image · Text</i>"]
+        UPLOAD["Document Upload<br/><i>PDF · Office · Text</i>"]
         EXTRACT["Text Extraction"]
         CHUNK["Chunk Splitter<br/><i>Sentence-boundary aware<br/>Overlap for context</i>"]
     end
@@ -352,7 +352,7 @@ erDiagram
 
 ## API Surface
 
-36+ RESTful endpoints organized by domain. Every mutating endpoint writes to the audit log. All POST endpoints validated via Zod schemas.
+40 RESTful endpoints organized by domain. Every mutating endpoint writes to the audit log. All POST endpoints validated via Zod schemas.
 
 ```mermaid
 flowchart TB
@@ -389,9 +389,10 @@ flowchart TB
         T3["POST /tools/scan<br/><i>Privilege scanner</i>"]
     end
 
-    subgraph SEARCH["Search — 2 endpoints"]
-        SE1["POST /search<br/><i>Semantic vector search</i>"]
-        SE2["GET /documents/:id/chunks<br/><i>Retrieve document chunks</i>"]
+    subgraph ADMIN["Admin — 3 endpoints"]
+        AD1["POST /admin/demo-mode<br/><i>Enter demo impersonation</i>"]
+        AD2["POST /admin/stop-impersonate<br/><i>Exit demo mode</i>"]
+        AD3["POST /admin/reset-demo<br/><i>Reset demo data</i>"]
     end
 
     style AUTH fill:#334155,stroke:#64748b,color:#e2e8f0
@@ -399,7 +400,7 @@ flowchart TB
     style AI_INTEL fill:#3b1d6e,stroke:#8b5cf6,color:#e2e8f0
     style SIMULATION fill:#5b2120,stroke:#ef4444,color:#e2e8f0
     style TOOLS fill:#1a3a2a,stroke:#10b981,color:#e2e8f0
-    style SEARCH fill:#164e63,stroke:#06b6d4,color:#e2e8f0
+    style ADMIN fill:#164e63,stroke:#06b6d4,color:#e2e8f0
 ```
 
 ---

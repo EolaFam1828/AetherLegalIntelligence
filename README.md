@@ -28,10 +28,10 @@ Aether is an internal workflow support system for document organization, summari
 | **Deposition Simulator** | Practice depositions against hostile AI opposing counsel with voice or text input (OpenAI Whisper transcription) |
 | **Settlement Analysis Assistant** | AI-generated settlement scenario discussion with supporting rationale — not financial or legal advice |
 | **Privilege Scanner** | AI-based first-pass scan for attorney-client privilege and work product indicators |
-| **Document Intelligence** | Document text extraction and AI-assisted analysis, with timeline event creation and vector embedding |
+| **Document Intelligence** | Document text extraction and AI-assisted analysis (PDF, Office, text), with timeline event creation and vector embedding. Unsupported file types rejected at upload |
 | **Semantic Search** | RAG pipeline — cosine similarity search across all case documents for context-aware AI responses |
 | **Executive Case Brief** | One-screen posture summary: status, deadlines, discovery status, document breakdown, risk signals (pure data aggregation, no AI call) |
-| **Timeline Tracking** | Chronological event management with deadline alerting and source document linking |
+| **Timeline Tracking** | Chronological event management with timeline, month calendar, and week calendar views — deadline alerting and source document linking |
 | **Case Management** | Per-case data separation with party tracking, document management, and notes |
 
 > **[Full feature documentation with limitations](FEATURES.md)**
