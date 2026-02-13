@@ -32,7 +32,7 @@ Aether is an internal workflow support system for document organization, summari
 | **Semantic Search** | RAG pipeline — cosine similarity search across all case documents for context-aware AI responses |
 | **Executive Case Brief** | One-screen posture summary: status, deadlines, discovery status, document breakdown, risk signals (pure data aggregation, no AI call) |
 | **Timeline Tracking** | Chronological event management with timeline, month calendar, and week calendar views — deadline alerting and source document linking |
-| **Case Management** | Per-case data separation with party tracking, document management, and notes |
+| **Case Management** | Per-case data separation with party tracking, document management, notes, and case archiving (soft-delete with restore) |
 
 > **[Full feature documentation with limitations](FEATURES.md)**
 

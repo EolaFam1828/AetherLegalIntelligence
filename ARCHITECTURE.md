@@ -19,7 +19,7 @@ flowchart TB
     end
 
     subgraph API["Application Layer"]
-        EX["Express.js API Server<br/><i>TypeScript · 40 endpoints</i>"]
+        EX["Express.js API Server<br/><i>TypeScript · 42 endpoints</i>"]
         MW["Middleware Stack<br/><i>Auth · Audit · Validation</i>"]
     end
 
@@ -252,10 +252,11 @@ erDiagram
         string caseNumber
         text summary
         string caseType
-        enum status "active | closed | archived"
+        string status
         string jurisdiction
         string court
         string judge
+        timestamp archivedAt "nullable"
         uuid userId FK
         uuid firmId FK
     }
@@ -268,8 +269,7 @@ erDiagram
         int size
         string storagePath
         string category
-        text extractedText
-        text aiAnalysis
+        text summary
         uuid caseId FK
     }
 
@@ -352,7 +352,7 @@ erDiagram
 
 ## API Surface
 
-40 RESTful endpoints organized by domain. Every mutating endpoint writes to the audit log. All POST endpoints validated via Zod schemas.
+42 RESTful endpoints organized by domain. Every mutating endpoint writes to the audit log. All POST endpoints validated via Zod schemas.
 
 ```mermaid
 flowchart TB
@@ -360,8 +360,8 @@ flowchart TB
         A1["GET /auth/me"]
     end
 
-    subgraph CASE_MGMT["Case Management — 14 endpoints"]
-        C1["CRUD /cases"]
+    subgraph CASE_MGMT["Case Management — 25 endpoints"]
+        C1["CRUD /cases<br/><i>+ archive / restore</i>"]
         C2["CRUD /cases/:id/parties"]
         C3["CRUD /cases/:id/documents"]
         C4["CRUD /cases/:id/events"]

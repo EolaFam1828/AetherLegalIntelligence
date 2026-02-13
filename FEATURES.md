@@ -7,7 +7,7 @@
 ## Core Platform
 
 ### Case Management
-Organize cases with full party tracking, document management, timeline events, and notes. Multi-firm architecture with per-case data separation — all queries filtered by the authenticated user's firmId. Role fields (Admin / Member / Viewer) are stored per user; currently, only case deletion is restricted to Admin role. Other RBAC enforcement is on the roadmap.
+Organize cases with full party tracking, document management, timeline events, and notes. Cases can be archived (soft-delete) from the Matters view and restored or permanently deleted from Settings > Archived Matters. Multi-firm architecture with per-case data separation — all queries filtered by the authenticated user's firmId. Role fields (Admin / Member / Viewer) are stored per user; currently, only case deletion is restricted to Admin role. Other RBAC enforcement is on the roadmap.
 
 ### Document Intelligence
 Upload and analyze legal documents using document text extraction and AI-assisted analysis. Supports PDFs, Office documents (Word, Excel, PowerPoint, RTF), and text files up to 50MB. Unsupported file types are rejected at upload with a clear error message. On upload, documents are processed through an asynchronous background pipeline: text extraction, AI-powered analysis, timeline event creation, and vector embedding generation. Documents are categorized and stored on NAS-mounted persistent storage. All uploaded documents become part of the case context available to every AI module.
