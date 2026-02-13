@@ -81,14 +81,14 @@ LLM-based plausibility check for legal citations. Each citation is evaluated for
 ## Simulation Modules
 
 ### Hearing Simulator
-Practice oral arguments against an AI judge or opposing counsel persona. The user inputs arguments via text; the AI responds in character. Maintains a running transcript within the session.
+Practice oral arguments against an AI judge or opposing counsel persona. The user inputs arguments via voice or text; the AI responds in character. Maintains a running transcript within the session. Voice input uses OpenAI Whisper for speech-to-text transcription.
 
-**Limitations:** No real speech recognition (mock recording UI only). No performance scoring or evaluation metrics. No transcript export. This is a conversational practice tool, not a graded simulation.
+**Limitations:** No performance scoring or evaluation metrics. No transcript export. This is a conversational practice tool, not a graded simulation. Voice recording requires `OPENAI_API_KEY`; if not configured, the mic button is disabled and text input remains available as fallback.
 
 ### Deposition Simulator
-Practice depositions with an AI-generated opposing counsel who asks hostile questions. The user responds as the witness; the AI generates follow-up questions that probe inconsistencies.
+Practice depositions with an AI-generated opposing counsel who asks hostile questions. The user responds via voice or text; the AI generates follow-up questions that probe inconsistencies.
 
-**Limitations:** Same as Hearing Simulator — no speech recognition, no scoring, no export. Session transcripts are maintained in component state only (not persisted to database).
+**Limitations:** No scoring or export. Session transcripts are maintained in component state only (not persisted to database). Voice recording requires `OPENAI_API_KEY`; if not configured, text input only.
 
 ---
 
@@ -147,6 +147,7 @@ The Case Chat Assistant maintains persistent conversation memory per case:
 - **No verification audit trail** — Event verification is a boolean toggle with no record of who verified or when
 - **No job retries** — Failed document processing jobs must be re-triggered manually by re-uploading
 - **Audit log captures actions, not state** — No before/after values recorded
+- **Voice input requires API key** — Voice recording in simulators requires `OPENAI_API_KEY`; if not configured, text input only
 
 ---
 
@@ -163,8 +164,6 @@ Items planned but not yet implemented:
 - Job retry mechanism with exponential backoff
 - Granular job progress tracking (stages and percentages)
 - Integration with external legal research APIs for citation verification
-- Real speech-to-text in simulation modules
-
 ---
 
 ## Supported Jurisdictions

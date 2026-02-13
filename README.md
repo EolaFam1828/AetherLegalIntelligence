@@ -24,8 +24,8 @@ Aether is an internal workflow support system for document organization, summari
 | **Discovery Generator** | Draft interrogatories, RFPs, and RFAs with strategic purpose annotations (attorney review and formatting required) |
 | **Document Drafting** | AI-generated draft text for motions, briefs, and correspondence — iterative refinement supported (no export, no versioning) |
 | **Citation Verification** | LLM-based plausibility check for legal citations — flags suspicious or likely fabricated references (not external database verification) |
-| **Hearing Simulator** | Practice oral arguments against an AI judge or opposing counsel persona (text-based, no speech recognition) |
-| **Deposition Simulator** | Practice depositions against hostile AI opposing counsel (text-based, no speech recognition) |
+| **Hearing Simulator** | Practice oral arguments against an AI judge or opposing counsel persona with voice or text input (OpenAI Whisper transcription) |
+| **Deposition Simulator** | Practice depositions against hostile AI opposing counsel with voice or text input (OpenAI Whisper transcription) |
 | **Settlement Analysis Assistant** | AI-generated settlement scenario discussion with supporting rationale — not financial or legal advice |
 | **Privilege Scanner** | AI-based first-pass scan for attorney-client privilege and work product indicators |
 | **Document Intelligence** | Document text extraction and AI-assisted analysis, with timeline event creation and vector embedding |
