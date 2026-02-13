@@ -1,9 +1,9 @@
 # TERMS OF SERVICE
 **Effective Date:** December 7, 2025
-**Version:** 1.0 (Enterprise)
+**Version:** 1.0
 
 ## 1. NATURE OF SERVICE
-Aether Systems ("Aether") provides an AI-native operating system for legal strategy, including evidence analysis, strategy generation, and simulation tools (the "Service").
+Aether Systems ("Aether") provides AI-assisted litigation intelligence tools, including case analysis, draft generation, and simulation tools (the "Service").
 
 **CRITICAL DISCLAIMER: NOT LEGAL ADVICE**
 Aether is a technology provider, not a law firm. We do not provide legal advice, representation, or referrals. No attorney-client relationship is formed between you and Aether. The Service is an assistive tool for licensed legal professionals; it is not a substitute for professional judgment.

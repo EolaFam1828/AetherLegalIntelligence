@@ -1,133 +1,176 @@
 # Aether — Feature Overview
 
-> Each module inherits a shared Cognitive Protocol that enforces elemental analysis, adversarial reasoning, and structured output — no generic chatbot responses.
+> Each module inherits a shared Cognitive Protocol that enforces elemental analysis, adversarial reasoning, and structured output — no generic chatbot responses. All AI output requires attorney review before use.
 
 ---
 
 ## Core Platform
 
 ### Case Management
-Organize cases with full party tracking, document management, timeline events, and notes. Multi-firm architecture with role-based access (Admin / Member / Viewer). All cases are scoped to the authenticated user's firm — no data leakage across tenants.
+Organize cases with full party tracking, document management, timeline events, and notes. Multi-firm architecture with firm-scoped data isolation — all queries filtered by the authenticated user's firmId. Role fields (Admin / Member / Viewer) are stored per user; currently, only case deletion is restricted to Admin role. Other RBAC enforcement is on the roadmap.
 
 ### Document Intelligence
-Upload and analyze legal documents using vision-based AI. Supports PDFs, images, and text files up to 50MB. On upload, documents are automatically processed through an asynchronous pipeline: text extraction, AI-powered analysis, timeline event creation, and vector embedding generation. Documents are tagged, categorized, and stored on NAS-mounted persistent storage. All uploaded documents become part of the case context available to every AI module.
+Upload and analyze legal documents using vision-based AI. Supports PDFs, images, and text files up to 50MB. On upload, documents are processed through an asynchronous background pipeline: text extraction, AI-powered analysis, timeline event creation, and vector embedding generation. Documents are categorized and stored on NAS-mounted persistent storage. All uploaded documents become part of the case context available to every AI module.
 
 ### Semantic Search (RAG)
-All uploaded documents are chunked into semantically meaningful segments and embedded as 768-dimensional vectors using Google's embedding model. When any AI module processes a query, the system retrieves the most relevant document chunks via cosine similarity search (pgvector), injecting precise source material into the AI context. This ensures AI responses are grounded in the actual case record rather than relying solely on model knowledge.
+All uploaded documents are chunked into semantically meaningful segments and embedded as 768-dimensional vectors using Google's embedding model. When any AI module processes a query, the system retrieves the most relevant document chunks via cosine similarity search (pgvector), injecting source material into the AI context. This grounds AI responses in the actual case record rather than relying solely on model knowledge.
 
 ### Executive Case Brief
-One-screen executive summary answering five questions about any case: What's the posture? What deadlines are critical? Where does discovery stand? What are the risk signals? What needs attention? Aggregates case data (status, jurisdiction, court, judge), upcoming deadlines with countdown, discovery metrics, document breakdown by category, party summary, risk signals (overdue deadlines, unverified events), and recent activity — all without an AI call (pure data aggregation for instant response).
+One-screen summary answering five questions about any case: What's the posture? What deadlines are critical? Where does discovery stand? What are the risk signals? What needs attention? Aggregates case data (status, jurisdiction, court, judge), upcoming deadlines with countdown, discovery metrics, document breakdown by category, party summary, risk signals (overdue deadlines, unverified events), and recent activity — all without an AI call (pure data aggregation for instant response).
 
 ### Timeline Tracking
-Chronological event management with deadline flagging. Events can be marked as verified or unverified, tagged by type (filing, hearing, deposition, deadline, general), and surfaced in case briefings. Auto-extracted events include source document traceability, linking each event back to the document it was extracted from. Deadline events drive urgency signals in strategy analysis.
+Chronological event management with deadline flagging. Events can be marked as verified or unverified, tagged by type (filing, hearing, deposition, deadline, general), and surfaced in case briefings. Auto-extracted events are linked to their source document via `sourceDocumentId`. Deadline events drive urgency signals in case briefings.
+
+**Current limitations:** Extracted events link to the source document but do not store page numbers, source quotes, or confidence scores. Verification is a boolean toggle — no reviewer identity or timestamp is recorded. These are on the roadmap.
 
 ---
 
 ## AI Intelligence Modules
 
+> All AI modules are decision-support tools. Output is generated by LLMs and must be reviewed, verified, and validated by a qualified attorney before any use in legal proceedings. Nothing generated by Aether constitutes legal advice.
+
 ### AI Legal Advisor
-Context-aware chat powered by case data. The advisor has access to all documents, parties, events, and notes for the active case. Conversation history is persisted per-case with automatic summarization — a sliding window of recent messages is maintained alongside AI-generated summaries of older conversations, enabling continuity across sessions without unbounded context growth. Jurisdiction constraints ensure advice stays within applicable law.
+Context-aware chat powered by case data. The advisor has access to all documents, parties, events, and notes for the active case. Conversation history is persisted per-case with automatic summarization — a sliding window of recent messages is maintained alongside AI-generated summaries of older conversations, enabling continuity across sessions without unbounded context growth. Jurisdiction constraints are included in the system prompt to scope responses to applicable law.
 
 ### War Room — Strategic Analysis
-Full SWOT analysis engine that outputs structured JSON:
-- **Elemental Analysis** — breaks every claim/defense into elements, flags satisfied vs. unproven vs. contradicted
-- **Adversarial Forecast** — predicts opponent's likely moves with probability ratings and counter-tactics
-- **Strategic Sequence** — ordered action plan optimized for momentum
-- **Narrative Theme** — the one-sentence story that wins
-- **Win Probability** — quantified 0-100 assessment
+Structured SWOT analysis that outputs JSON with:
+- **Strengths / Weaknesses / Opportunities / Threats** — categorized strategic assessment
+- **Executive Summary** — high-level case posture
+- **Recommended Actions** — prioritized with deadlines
+- **Discovery Suggestions** — areas to investigate
+- **Settlement Considerations** — BATNA and corridor analysis
 
-Jurisdiction-aware: all case law citations are constrained to the applicable court system.
+Output is AI-generated based on case data and RAG context. No external legal research is performed — citations in output are LLM-generated and must be independently verified. Supports iterative refinement via feedback loop.
 
 ### Red Team Audit
-Simulates a senior defense partner conducting a vulnerability analysis of the plaintiff's case. Outputs a structured Vulnerability Matrix:
+AI-generated vulnerability analysis simulating opposing counsel's perspective. Outputs a structured Vulnerability Matrix as JSON:
 - **Overall Threat Level** — CRITICAL / HIGH / MODERATE / LOW
 - **Case Fatality Rating** — 0-100 scale
 - **Vulnerability entries** across six categories: credibility, evidence, procedural, legal, damages, narrative
-- Each vulnerability includes severity, exploit strategy (how opposing counsel attacks), recommended defense, and risky case law
-- **Summary Attack Plan** — synthesis of how the defense wins if vulnerabilities aren't addressed
-- **Immediate Actions** — urgent steps before next hearing
+- Each vulnerability includes severity, exploit strategy, recommended defense, and referenced case law
+- **Summary Attack Plan** and **Immediate Actions**
+
+Referenced case law is LLM-generated and not verified against external databases. Supports iterative refinement via feedback loop.
 
 ### Discovery Generator
-Generates targeted, strategically valuable discovery requests based on case context:
-- **Interrogatories** — sworn written questions with objection-proof language
-- **Requests for Production** — document demands with proper legal format
+Generates draft discovery requests based on case context:
+- **Interrogatories** — draft written questions with strategic purpose annotations
+- **Requests for Production** — document demand drafts
 - **Requests for Admission** — statements requiring admit/deny responses
-- Each request includes its strategic purpose and follows applicable procedural rules
+- Each request includes its strategic purpose
+
+Output is structured JSON rendered in the UI. No export to DOCX/PDF — output must be copied and formatted by the attorney. All generated requests require review for compliance with applicable rules.
 
 ### Document Drafting
-AI-generated motions, briefs, and legal correspondence. Drafts follow jurisdiction-specific formatting requirements and cite applicable law.
+AI-generated draft text for motions, briefs, and correspondence. The system accepts document type, instructions, and optional prior draft for iterative refinement.
+
+**What it is:** A draft generation assistant that produces formatted markdown text based on case context and user instructions.
+
+**What it is not:** An automated document production system. There is no export to DOCX/PDF, no version history, and no template library. Output must be copied, reviewed, reformatted, and filed by the attorney.
 
 ### Citation Verification
-Checks legal citations for hallucination risk. Each citation is evaluated for:
-- Whether the case exists (name, volume, reporter, page, court, year plausibility)
-- Whether the described holding matches the actual case
+LLM-based plausibility check for legal citations. Each citation is evaluated for:
+- Whether the case name, volume, reporter, page, court, and year are plausible
+- Whether the described holding is consistent with known law
 - Confidence rating: verified / suspicious / likely fabricated / unable to verify
-- Overall risk assessment with recommended actions
 
-Designed to catch AI-generated citation errors before they reach a filing.
+**Important limitation:** This is LLM self-assessment, not external database verification. The system does not query Westlaw, LexisNexis, or any legal database. It checks whether citations are plausible based on the model's training data. "Verified" means the LLM is confident the citation exists — it does not guarantee accuracy. All citations must be independently verified through authoritative legal research tools before filing.
 
 ---
 
 ## Simulation Modules
 
 ### Hearing Simulator
-Practice oral arguments against an AI judge with configurable persona (skeptical, detail-oriented, impatient). The judge asks probing questions, challenges weak points, and evaluates argument quality.
+Practice oral arguments against an AI judge or opposing counsel persona. The user inputs arguments via text; the AI responds in character. Maintains a running transcript within the session.
+
+**Limitations:** No real speech recognition (mock recording UI only). No performance scoring or evaluation metrics. No transcript export. This is a conversational practice tool, not a graded simulation.
 
 ### Deposition Simulator
-Prepare for depositions against a hostile AI opposing counsel. The simulator applies pressure tactics, tests witness credibility, and exploits inconsistencies — designed to surface weaknesses in testimony before the real deposition.
+Practice depositions with an AI-generated opposing counsel who asks hostile questions. The user responds as the witness; the AI generates follow-up questions that probe inconsistencies.
+
+**Limitations:** Same as Hearing Simulator — no speech recognition, no scoring, no export. Session transcripts are maintained in component state only (not persisted to database).
 
 ---
 
 ## Analysis Tools
 
 ### Case Valuation
-Settlement value estimation using comparable case analysis, injury severity assessment, and jurisdiction-specific damage calculations. Outputs a range with supporting rationale.
+AI-generated settlement value estimation based on case context. Outputs a structured range with supporting rationale. This is an LLM opinion, not actuarial analysis — it should inform, not replace, professional valuation.
 
 ### Privilege Scanner
-Scans documents for attorney-client privilege and work product indicators. Flags potentially protected content before production to prevent inadvertent disclosure.
+AI-based scan of document text for attorney-client privilege and work product indicators. Flags potentially protected content before production. This is a first-pass screening tool — flagged items require attorney review to confirm privilege claims.
 
 ---
 
 ## Document Processing Pipeline
 
-Every document upload triggers an automatic, asynchronous processing pipeline with tracked job lifecycle (queued → processing → completed/failed):
+Every document upload triggers an asynchronous background pipeline with tracked job lifecycle (queued → processing → completed/failed):
 
 1. **Job Creation** — A `DocumentJob` record is created and the job ID returned to the client for status polling
 2. **Text Extraction** — Content is extracted from PDF, image, and text files
-3. **AI Analysis** — The extracted text is analyzed by the AI engine for key facts, legal issues, and relevant entities
-4. **Timeline Event Creation** — Significant dates and events identified in the document are automatically added to the case timeline with source document traceability (each event links back to its source document)
-5. **Vector Embedding** — The document is split into semantically coherent chunks (sentence-boundary-aware) and each chunk is embedded as a 768-dimensional vector for RAG retrieval
+3. **AI Analysis** — The extracted text is analyzed for key facts, legal issues, and relevant entities
+4. **Timeline Event Creation** — Dates and events identified in the document are added to the case timeline with a link to the source document
+5. **Vector Embedding** — The document is split into chunks (sentence-boundary-aware) and each chunk is embedded as a 768-dimensional vector for RAG retrieval
 
-This pipeline runs in the background after upload — users see their document immediately and can poll `GET /documents/:id/processing-status` for progress. All request bodies are validated via Zod schemas before processing.
+**Current limitations:** No retry mechanism for failed jobs. No granular progress tracking (status is binary: processing or done). No page-level traceability — extracted events link to the document but not to specific pages or quotes within it. These are on the roadmap.
 
 ---
 
 ## Conversation Memory
 
-The AI Legal Advisor maintains persistent, efficient conversation memory per case:
+The AI Legal Advisor maintains persistent conversation memory per case:
 
 - **Sliding Window** — Recent messages are maintained in full fidelity for immediate context
-- **Automatic Summarization** — When conversations exceed the window, older messages are automatically summarized by the AI and stored as compressed context
+- **Automatic Summarization** — When conversations exceed the window, older messages are summarized by the AI and stored as compressed context
 - **Cross-Session Continuity** — Summaries persist across sessions, so the AI advisor retains awareness of prior discussions without consuming unbounded context
-
-This enables sustained, multi-session legal analysis where the AI builds cumulative understanding of a case over time.
 
 ---
 
 ## Security & Infrastructure
 
-- **Zero-trust network** — Cloudflare Tunnel, no open ports
-- **SSO authentication** — Authentik with Traefik ForwardAuth on every request
-- **Firm-scoped data isolation** — all queries filtered by firmId
-- **Comprehensive audit logging** — user, action, resource, IP, user agent, metadata
+- **Identity proxy** — Authentik SSO with Traefik ForwardAuth on every request; API is not directly exposed to the internet (sits behind Cloudflare Tunnel with no open ports)
+- **Header-based auth** — The API trusts identity headers from the upstream proxy. There is no JWT signature verification or HMAC validation at the application layer — security depends on the network perimeter (Cloudflare Tunnel → Traefik → Authentik) preventing header forgery
+- **Firm-scoped data isolation** — all database queries filtered by firmId
+- **Action audit logging** — logs user, action, resource, resource ID, IP, user agent, and timestamp. Does not capture before/after state values
 - **Multi-model AI with fallback** — Gemini primary, local Ollama fallback ensures availability
+- **API rate limiting** — per-model sliding-window throttling with FIFO queues, graceful Ollama fallback on limit exhaustion
 - **Containerized deployment** — Docker with persistent volumes
+
+---
+
+## Known Limitations
+
+- **No export** — AI-generated drafts, discovery requests, and analysis output can only be viewed in the UI. No DOCX, PDF, or file download capability
+- **No version history** — Drafts and analyses are not versioned. Iterative refinement replaces the previous output
+- **No external legal research** — Citation verification and case law references are LLM-generated, not sourced from legal databases
+- **Limited RBAC enforcement** — Role field exists but only case deletion checks for Admin role. Viewer restrictions are not enforced
+- **No page-level traceability** — Document chunks and extracted events lack page numbers and source quotes
+- **No verification audit trail** — Event verification is a boolean toggle with no record of who verified or when
+- **No job retries** — Failed document processing jobs must be re-triggered manually by re-uploading
+- **Audit log captures actions, not state** — No before/after values recorded
+
+---
+
+## Roadmap
+
+Items planned but not yet implemented:
+
+- Page-level source traceability (page numbers, extracted quotes, confidence scores on events)
+- Verification audit trail (verifiedBy, verifiedAt fields)
+- DOCX/PDF export for drafts and discovery output
+- Draft version history
+- Full RBAC enforcement (Viewer read-only, Member restricted mutations)
+- Audit log state capture (old/new values on mutations)
+- Job retry mechanism with exponential backoff
+- Granular job progress tracking (stages and percentages)
+- Integration with external legal research APIs for citation verification
+- Real speech-to-text in simulation modules
 
 ---
 
 ## Supported Jurisdictions
 
-Each AI module is bound to the applicable jurisdiction's statutes, procedural rules, and court conventions:
+Each AI module includes jurisdiction constraints in its system prompt, scoping generated content to the applicable court system:
 
 | Jurisdiction | Court System |
 |-------------|-------------|

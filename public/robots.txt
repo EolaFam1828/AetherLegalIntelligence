@@ -1,4 +1,4 @@
-# Aether Enterprise - Robots.txt
+# Aether - Robots.txt
 # This is a private legal platform. Crawlers are not permitted.
 
 User-agent: *

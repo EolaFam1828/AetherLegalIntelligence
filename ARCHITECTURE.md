@@ -1,12 +1,12 @@
 # Aether — System Architecture
 
-> AI-native litigation intelligence platform. Case briefing, adversarial analysis, discovery automation, and trial preparation — built for speed.
+> AI-assisted litigation intelligence platform. Case briefing, adversarial analysis, draft generation, and preparation tools — built for speed. All AI output requires attorney review.
 
 ---
 
 ## System Overview
 
-Aether is a full-stack litigation intelligence platform designed to turn raw case data (pleadings, depositions, discovery productions, expert reports) into structured, actionable intelligence. The system runs as a containerized service within a zero-trust homelab infrastructure.
+Aether is a full-stack litigation intelligence platform designed to turn raw case data (pleadings, depositions, discovery productions, expert reports) into structured, AI-generated analysis for attorney review. The system runs as a containerized service within a homelab infrastructure behind an identity proxy.
 
 ```mermaid
 flowchart TB
@@ -15,8 +15,8 @@ flowchart TB
     end
 
     subgraph EDGE["Edge & Auth"]
-        CF["Cloudflare Tunnel<br/><i>Zero open ports</i>"]
-        TF["Traefik v3<br/><i>TLS 1.3 · Rate Limiting</i>"]
+        CF["Cloudflare Tunnel<br/><i>No open ports</i>"]
+        TF["Traefik v3<br/><i>TLS 1.3 · Routing</i>"]
         AK["Authentik SSO<br/><i>ForwardAuth Middleware</i>"]
     end
 
@@ -110,6 +110,18 @@ All AI agents share a unified **Cognitive Protocol** — a structured reasoning 
 
 Each AI module (War Room, Red Team, Discovery, etc.) inherits these protocols and applies them through specialized system instructions with jurisdiction-aware constraints.
 
+### Rate Limiting & Graceful Degradation
+
+All Gemini API calls are throttled by a service-level rate limiter (not middleware) to prevent 429 errors. Each model tier has its own limiter with sliding-window tracking and a FIFO wait queue:
+
+| Model | RPM | TPM | RPD |
+|-------|-----|-----|-----|
+| Gemini Pro | 25 | 1,000,000 | 250 |
+| Gemini Flash | 2,000 | 4,000,000 | Unlimited |
+| Embedding 001 | 3,000 | 1,000,000 | Unlimited |
+
+Interactive requests wait up to 5 seconds then gracefully fall back to Ollama. Background document processing waits up to 120 seconds. The health endpoint exposes live RPM/TPM/RPD usage and queue depth per tier.
+
 ---
 
 ## RAG Pipeline
@@ -192,7 +204,7 @@ flowchart LR
         direction TB
         TEXT["Text Extraction"]
         ANALYZE["AI Analysis<br/><i>Key facts · Legal issues</i>"]
-        TIMELINE["Timeline Events<br/><i>Auto-created with<br/>source traceability</i>"]
+        TIMELINE["Timeline Events<br/><i>Auto-created, linked<br/>to source document</i>"]
         VECTORS["Vector Embeddings<br/><i>Chunk + embed for RAG</i>"]
 
         TEXT --> ANALYZE --> TIMELINE --> VECTORS
@@ -205,7 +217,7 @@ flowchart LR
 
 ## Data Model
 
-Multi-tenant architecture with firm-level data isolation, vector search, conversation memory, and full audit trail.
+Multi-tenant architecture with firm-level data isolation, vector search, conversation memory, and action audit logging.
 
 ```mermaid
 erDiagram
@@ -365,7 +377,7 @@ flowchart TB
         I3["POST /audit<br/><i>Red Team vulnerability scan</i>"]
         I4["POST /discovery<br/><i>Generate interrogatories,<br/>RFPs, RFAs</i>"]
         I5["POST /draft<br/><i>Motion & brief drafting</i>"]
-        I6["POST /verify-citations<br/><i>Hallucination detection</i>"]
+        I6["POST /verify-citations<br/><i>LLM citation plausibility check</i>"]
     end
 
     subgraph SIMULATION["Simulation — 2 endpoints"]
@@ -396,7 +408,7 @@ flowchart TB
 
 ## Request Lifecycle
 
-Every request passes through the same pipeline: edge security → authentication → authorization → audit → processing.
+Every request passes through the same pipeline: edge security → authentication → audit → processing.
 
 ```mermaid
 sequenceDiagram
@@ -443,26 +455,28 @@ sequenceDiagram
 
 ## Security Model
 
+Access control relies on the network perimeter — the API is not directly exposed and trusts identity headers from the upstream proxy chain. There is no application-layer cryptographic verification (no JWT, no HMAC, no mTLS). Security depends on Cloudflare Tunnel and Traefik preventing unauthorized access and header forgery.
+
 ```mermaid
 flowchart TB
     subgraph PERIMETER["Network Perimeter"]
         direction TB
         A["No open ports<br/><i>Cloudflare Tunnel only</i>"]
-        B["DDoS protection<br/><i>Cloudflare WAF</i>"]
+        B["DDoS mitigation<br/><i>Cloudflare</i>"]
         C["TLS 1.3 termination<br/><i>Traefik with wildcard certs</i>"]
     end
 
     subgraph IDENTITY["Identity & Access"]
         direction TB
         D["SSO via Authentik<br/><i>ForwardAuth on every request</i>"]
-        E["Role-based access<br/><i>ADMIN · MEMBER · VIEWER</i>"]
-        F["First-user auto-admin<br/><i>Subsequent users default MEMBER</i>"]
+        E["Header-based auth<br/><i>API trusts X-Authentik-* headers</i>"]
+        F["Role stored per user<br/><i>ADMIN · MEMBER · VIEWER</i>"]
     end
 
     subgraph DATA_SEC["Data Isolation"]
         direction TB
         G["Firm-scoped queries<br/><i>All DB queries filtered by firmId</i>"]
-        H["Full audit trail<br/><i>User · Action · Resource · IP · UA</i>"]
+        H["Action audit logging<br/><i>User · Action · Resource · IP</i>"]
         I["Path traversal protection<br/><i>Storage service sanitization</i>"]
     end
 
@@ -472,6 +486,12 @@ flowchart TB
     style IDENTITY fill:#78350f,stroke:#f59e0b,color:#fef3c7
     style DATA_SEC fill:#14532d,stroke:#10b981,color:#d1fae5
 ```
+
+**Current security limitations:**
+- No JWT signature verification or HMAC at the application layer
+- RBAC enforcement is minimal — only case deletion checks for Admin role
+- Audit log records actions but not before/after state values
+- No verification audit trail (who verified, when)
 
 ---
 
@@ -541,7 +561,7 @@ flowchart TB
 | AI (Primary) | Google Gemini Pro/Flash | Complex reasoning + chat |
 | AI (Fallback) | Ollama + Llama 3.1:8b | Local inference, offline capability |
 | Embeddings | Google Embedding API | 768-dim document vectors |
-| Auth | Authentik SSO via Traefik ForwardAuth | Zero-trust identity |
+| Auth | Authentik SSO via Traefik ForwardAuth | Identity proxy (header-based) |
 | Reverse Proxy | Traefik v3 | TLS, routing, auth middleware |
 | Edge | Cloudflare Tunnel | Secure ingress, no open ports |
 | Storage | NAS-mounted filesystem | Document persistence |

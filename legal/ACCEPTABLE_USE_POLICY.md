@@ -1,6 +1,6 @@
 # ACCEPTABLE USE POLICY (AUP)
 **Effective Date:** December 7, 2025
-**Version:** 1.0 (Enterprise)
+**Version:** 1.0
 
 This AUP defines the boundaries of use for the Aether Platform.
 
@@ -52,6 +52,6 @@ To report violations of this AUP:
 For questions about this AUP: legal@eolagateway.net
 
 ---
-**BY USING AETHER ENTERPRISE, YOU AGREE TO COMPLY WITH THIS ACCEPTABLE USE POLICY.**
+**BY USING AETHER, YOU AGREE TO COMPLY WITH THIS ACCEPTABLE USE POLICY.**
 
 **Last Updated:** December 7, 2025
