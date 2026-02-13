@@ -339,3 +339,7 @@ For security inquiries or responsible disclosure, contact Jake Sadoway via [Link
 ## License
 
 Copyright 2026 Jake Sadoway. All rights reserved. Portfolio demonstration only.
+
+---
+
+**[← Back to README](README.md)** | **[View Architecture →](ARCHITECTURE.md)** | **[View Features →](FEATURES.md)** | **[Implementation Details →](IMPLEMENTATION.md)**

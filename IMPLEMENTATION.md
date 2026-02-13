@@ -342,3 +342,7 @@ From [FEATURES.md](FEATURES.md):
 ## License
 
 Copyright 2026 Jake Sadoway. All rights reserved. Portfolio demonstration only.
+
+---
+
+**[← Back to README](README.md)** | **[View Architecture →](ARCHITECTURE.md)** | **[View Features →](FEATURES.md)** | **[Security Model →](SECURITY.md)**

@@ -1,6 +1,36 @@
 # Aether — System Architecture
 
+> **Portfolio Note:** This document describes the technical architecture of the Aether Litigation Intelligence Platform. This is a **documentation-only repository** — the production application is privately hosted.
+
 > AI-assisted litigation intelligence platform. Case briefing, adversarial analysis, draft generation, and preparation tools — built for speed. All AI output requires attorney review.
+
+---
+
+## 📚 Related Documentation
+
+- **[README.md](README.md)** — Platform overview, capabilities, tech stack
+- **[FEATURES.md](FEATURES.md)** — Detailed module documentation with limitations
+- **[IMPLEMENTATION.md](IMPLEMENTATION.md)** — Technical implementation summary
+- **[SECURITY.md](SECURITY.md)** — Security model and authentication
+- **[TECHNICAL_DECISIONS.md](TECHNICAL_DECISIONS.md)** — Design decisions and trade-offs
+
+---
+
+## Table of Contents
+
+1. [System Overview](#system-overview)
+2. [Intelligence Architecture](#intelligence-architecture)
+3. [AI Engine Architecture](#ai-engine-architecture)
+4. [RAG Pipeline](#rag-pipeline)
+5. [Conversation Memory](#conversation-memory)
+6. [Document Processing Pipeline](#document-processing-pipeline)
+7. [Data Model](#data-model)
+8. [API Surface](#api-surface)
+9. [Request Lifecycle](#request-lifecycle)
+10. [Security Model](#security-model)
+11. [Jurisdiction Engine](#jurisdiction-engine)
+12. [Deployment](#deployment)
+13. [Tech Stack](#tech-stack)
 
 ---
 
@@ -768,3 +798,7 @@ flowchart TB
 ## License
 
 Copyright 2026 Jake Sadoway. All rights reserved. This repository is shared for portfolio and demonstration purposes only. No license is granted for commercial use, reproduction, or derivative works without written permission.
+
+---
+
+**[← Back to README](README.md)** | **[View Features →](FEATURES.md)** | **[Implementation Details →](IMPLEMENTATION.md)** | **[Security Model →](SECURITY.md)**

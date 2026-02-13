@@ -1,6 +1,36 @@
 # Aether — Feature Overview
 
+> **Portfolio Note:** This document describes the features and capabilities of the Aether Litigation Intelligence Platform. This is a **documentation-only repository** — the production application is privately hosted.
+
 > Each module inherits a shared Cognitive Protocol that enforces elemental analysis, adversarial reasoning, and structured output — no generic chatbot responses. All AI output requires attorney review before use.
+
+---
+
+## 📚 Related Documentation
+
+- **[README.md](README.md)** — Platform overview, capabilities, tech stack
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** — System diagrams, data model, AI engine
+- **[IMPLEMENTATION.md](IMPLEMENTATION.md)** — Technical implementation summary
+- **[SECURITY.md](SECURITY.md)** — Security model and authentication
+- **[TECHNICAL_DECISIONS.md](TECHNICAL_DECISIONS.md)** — Design decisions and trade-offs
+
+---
+
+## Table of Contents
+
+1. [Core Platform](#core-platform)
+2. [AI Intelligence Modules](#ai-intelligence-modules)
+3. [Intelligence Persistence](#intelligence-persistence)
+4. [Case Signals](#case-signals)
+5. [Knowledge Graph](#knowledge-graph)
+6. [Simulation Modules](#simulation-modules)
+7. [Analysis Tools](#analysis-tools)
+8. [Document Processing Pipeline](#document-processing-pipeline)
+9. [Conversation Memory](#conversation-memory)
+10. [Security & Infrastructure](#security--infrastructure)
+11. [Known Limitations](#known-limitations)
+12. [Roadmap](#roadmap)
+13. [Supported Jurisdictions](#supported-jurisdictions)
 
 ---
 
@@ -251,3 +281,7 @@ Each AI module includes jurisdiction constraints in its system prompt, scoping g
 ## License
 
 Copyright 2026 Jake Sadoway. All rights reserved. Shared for portfolio and demonstration purposes only.
+
+---
+
+**[← Back to README](README.md)** | **[View Architecture →](ARCHITECTURE.md)** | **[Implementation Details →](IMPLEMENTATION.md)** | **[Security Model →](SECURITY.md)**

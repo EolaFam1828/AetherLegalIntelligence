@@ -387,3 +387,7 @@ Per-model sliding-window rate limiting with FIFO queues:
 ## License
 
 Copyright 2026 Jake Sadoway. All rights reserved. Portfolio demonstration only.
+
+---
+
+**[← Back to README](README.md)** | **[View Architecture →](ARCHITECTURE.md)** | **[View Features →](FEATURES.md)** | **[Security Model →](SECURITY.md)**
