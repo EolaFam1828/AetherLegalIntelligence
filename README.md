@@ -259,7 +259,7 @@ Jake Sadoway is a litigation intelligence systems designer focused on retrieval,
 
 ---
 
-### Live Demo
+## 🚀Live Demo
 
 The working system is privately hosted and demonstrated live upon request.
 
