@@ -21,17 +21,45 @@ Then run the Aether Alignment Checklist from there. That checklist treats this p
 ```
 AetherLegalIntelligence/
 ├── README.md              # Platform overview — capabilities, tech stack, limitations
-├── ARCHITECTURE.md        # System diagrams (Mermaid) — data model, AI engine, RAG, security
-├── FEATURES.md            # Module documentation with honest limitations
-├── CLAUDE.md              # This file
+├── ARCHITECTURE.md        # System diagrams, data model, AI engine, security, design decisions
+├── FEATURES.md            # Module documentation with honest limitations, roadmap
+├── CLAUDE.md              # This file — repo management instructions
 ├── LICENSE                # Copyright — portfolio demonstration only
 ├── legal/                 # Legal documents
 │   ├── TERMS_OF_SERVICE.md
 │   ├── PRIVACY_POLICY.md
 │   ├── ACCEPTABLE_USE_POLICY.md
 │   └── MASTER_SERVICES_AGREEMENT.md
-└── public/                # Brand assets
+└── public/                # Brand assets + screenshots
+    ├── screenshots/
+    ├── logo.svg
+    └── robots.txt
 ```
+
+## What Each File Covers
+
+| File | Single Source For | Key Accuracy Points |
+|---|---|---|
+| `README.md` | Module capabilities table, tech stack table, limitations summary, product tour, repo structure | 21 modules, 66 endpoints, 25 data models |
+| `ARCHITECTURE.md` | System diagrams, intelligence layer, AI engine, RAG pipeline, data model ERD, API surface, security model, deployment, testing, design decisions | Mermaid diagrams, cross-module dependencies, rate limiting, auth hardening |
+| `FEATURES.md` | Per-module documentation with limitations, roadmap, jurisdictions | Every module's capabilities AND limitations, known limitations list |
+
+## Deduplication Rules
+
+Each piece of information lives in **exactly one file**:
+
+- **Module list** → README.md only
+- **Tech stack** → README.md only
+- **Limitations** → README.md (summary) links to FEATURES.md (detailed)
+- **Architecture diagrams** → ARCHITECTURE.md only
+- **Data model** → ARCHITECTURE.md only
+- **API surface** → ARCHITECTURE.md only
+- **Security model** → ARCHITECTURE.md only
+- **Rate limiting** → ARCHITECTURE.md only
+- **Design decisions** → ARCHITECTURE.md only
+- **Per-module docs** → FEATURES.md only
+- **Roadmap** → FEATURES.md only
+- **Jurisdictions** → FEATURES.md only
 
 ## Alignment Rules
 
@@ -42,14 +70,7 @@ These docs must satisfy the following invariants at all times:
 3. **Counts are accurate.** Endpoint counts, model counts, module counts, schema model counts — all must match the private codebase exactly.
 4. **No exaggeration.** "Draft generation" is not "automated document production." "LLM plausibility check" is not "legal research verification." Language must be precise.
 5. **Mermaid diagrams reflect reality.** Architecture diagrams must match the actual service topology, data flow, and model routing in the private codebase.
-
-## What Each File Covers
-
-| File | Purpose | Key Accuracy Points |
-|---|---|---|
-| `README.md` | Platform overview for portfolio visitors | Module table, tech stack table, "What It Does NOT Do" section |
-| `ARCHITECTURE.md` | Technical deep-dive with Mermaid diagrams | System overview, AI engine routing, RAG pipeline, data model (13 models), API surface (36+ endpoints), security model, deployment topology |
-| `FEATURES.md` | Per-module documentation with limitations | Every module's capabilities AND limitations, known limitations section, roadmap |
+6. **No duplication.** Each fact exists in exactly one file. Other files link to it.
 
 ## Git Remote
 

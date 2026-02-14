@@ -7,16 +7,6 @@
 
 ---
 
-## 📚 Related Documentation
-
-- **[README.md](README.md)** — Platform overview, capabilities, tech stack
-- **[FEATURES.md](FEATURES.md)** — Detailed module documentation with limitations
-- **[IMPLEMENTATION.md](IMPLEMENTATION.md)** — Technical implementation summary
-- **[SECURITY.md](SECURITY.md)** — Security model and authentication
-- **[TECHNICAL_DECISIONS.md](TECHNICAL_DECISIONS.md)** — Design decisions and trade-offs
-
----
-
 ## Table of Contents
 
 1. [System Overview](#system-overview)
@@ -30,8 +20,9 @@
 9. [Request Lifecycle](#request-lifecycle)
 10. [Security Model](#security-model)
 11. [Jurisdiction Engine](#jurisdiction-engine)
-12. [Deployment](#deployment)
-13. [Tech Stack](#tech-stack)
+12. [Testing](#testing)
+13. [Deployment](#deployment)
+14. [Design Decisions](#design-decisions)
 
 ---
 
@@ -52,7 +43,7 @@ flowchart TB
     end
 
     subgraph API["Application Layer"]
-        EX["Express.js API Server<br/><i>TypeScript · 64 endpoints · 9 route modules</i>"]
+        EX["Express.js API Server<br/><i>TypeScript · 66 endpoints · 9 route modules</i>"]
         MW["Middleware Stack<br/><i>Auth · Audit · Validation</i>"]
     end
 
@@ -157,7 +148,7 @@ flowchart TB
 
 ### Cross-Module Dependencies
 
-Each AI module reads from other modules' latest outputs to build enriched context. The dependency graph ensures that Strategy reads Red Team findings, Discovery reads Strategy priorities, and so on:
+Each AI module reads from other modules' latest outputs to build enriched context:
 
 | Module | Reads From |
 |--------|-----------|
@@ -170,6 +161,15 @@ Each AI module reads from other modules' latest outputs to build enriched contex
 | **Key Exhibits** | Strategy, Red Team, Case Theory Map |
 | **Privilege Scan** | (standalone — no cross-module reads) |
 | **Citation Check** | (standalone — no cross-module reads) |
+
+### Analysis Lifecycle Service
+
+Shared helpers that centralize lifecycle patterns across all AI modules:
+
+- **`runAnalysisModule()`** — Full lifecycle: enriched context → dedup check → LLM call → output validation → persist → recalibrate
+- **`runRefinement()`** — Refinement variant: loads previous analysis, appends feedback, runs LLM, persists new version
+- **`buildAnalysisMeta()`** — Constructs response metadata (analysis ID, version, staleness, model info)
+- **`getSignalsSnapshot()`** / **`getModelName()`** — Shared utilities
 
 ### Knowledge Graph
 
@@ -186,7 +186,7 @@ A lightweight directed graph (`GraphEdge` table) connects case entities with typ
 
 ## AI Engine Architecture
 
-The AI layer uses **task-based model routing** — each request type maps to the optimal model for that task. Complex reasoning (strategy, audits, drafting) routes to the most capable model. Lighter tasks (chat, scans, simulations) route to a faster model. Local Ollama provides an always-available fallback.
+The AI layer uses **task-based model routing** — each request type maps to the optimal model for that task. Complex reasoning routes to the most capable model. Lighter tasks route to a faster model. Local Ollama provides an always-available fallback.
 
 ```mermaid
 flowchart LR
@@ -231,11 +231,11 @@ All AI agents share a unified **Cognitive Protocol** — a structured reasoning 
 | Credibility Assessment | Evaluate witness reliability |
 | Exit Strategy | Calculate settlement ranges |
 
-Each AI module (War Room, Red Team, Discovery, etc.) inherits these protocols and applies them through specialized system instructions with jurisdiction-aware constraints.
+Each AI module inherits these protocols and applies them through specialized system instructions with jurisdiction-aware constraints.
 
 ### Rate Limiting & Graceful Degradation
 
-All Gemini API calls are throttled by a service-level rate limiter (not middleware) to prevent 429 errors. Each model tier has its own limiter with sliding-window tracking and a FIFO wait queue:
+All Gemini API calls are throttled by a service-level rate limiter (not middleware) with sliding-window tracking and FIFO wait queues:
 
 | Model | RPM | TPM | RPD |
 |-------|-----|-----|-----|
@@ -244,6 +244,10 @@ All Gemini API calls are throttled by a service-level rate limiter (not middlewa
 | Embedding 001 | 3,000 | 1,000,000 | Unlimited |
 
 Interactive requests wait up to 5 seconds then gracefully fall back to Ollama. Background document processing waits up to 120 seconds. The health endpoint exposes live RPM/TPM/RPD usage and queue depth per tier.
+
+### LLM Output Validation
+
+All AI module outputs are validated against Zod schemas before persistence. Schemas are intentionally lenient (most fields optional) since LLM output is non-deterministic — the goal is catching structurally broken responses. If validation fails, the raw output is stored and the analysis is marked FAILED.
 
 ---
 
@@ -328,9 +332,10 @@ flowchart LR
         TEXT["Text Extraction"]
         ANALYZE["AI Analysis<br/><i>Key facts · Legal issues</i>"]
         TIMELINE["Timeline Events<br/><i>Auto-created, linked<br/>to source document</i>"]
+        PARTIES["Party Extraction<br/><i>Auto-created from<br/>document analysis</i>"]
         VECTORS["Vector Embeddings<br/><i>Chunk + embed for RAG</i>"]
 
-        TEXT --> ANALYZE --> TIMELINE --> VECTORS
+        TEXT --> ANALYZE --> TIMELINE --> PARTIES --> VECTORS
     end
 
     ASYNC --> RECALIB["Recalibration<br/><i>Signal recompute<br/>+ staleness check</i>"]
@@ -604,10 +609,10 @@ erDiagram
 
 ## API Surface
 
-64 RESTful endpoints organized across 9 route modules plus 2 health endpoints. Every mutating endpoint writes to the audit log. All POST and PATCH endpoints validated via Zod schemas (26 schemas). CRUD mutations trigger the recalibration engine to detect stale analyses.
+66 RESTful endpoints organized across 9 route modules plus 2 health endpoints. Every mutating endpoint writes to the audit log. All POST and PATCH endpoints validated via Zod schemas. CRUD mutations trigger the recalibration engine to detect stale analyses.
 
 <details>
-<summary><strong>View API surface diagram</strong> — 64 endpoints across 9 route modules + health</summary>
+<summary><strong>View API surface diagram</strong> — 66 endpoints across 9 route modules + health</summary>
 
 <br />
 
@@ -678,6 +683,12 @@ flowchart TB
 
 </details>
 
+### Server Configuration
+
+- Request timeout: 120 seconds (accommodates long LLM calls)
+- Keep-alive timeout: 65 seconds
+- JSON body limit: 10MB (file uploads handled separately via multer)
+
 ---
 
 ## Request Lifecycle
@@ -733,7 +744,7 @@ sequenceDiagram
 
 ## Security Model
 
-Containerized service deployed behind an identity proxy. The API is not directly exposed and trusts identity headers from the upstream proxy. There is no application-layer cryptographic verification (no JWT, no HMAC, no mTLS).
+Containerized service deployed behind an identity proxy. The API is not directly exposed and trusts identity headers from the upstream proxy.
 
 ```mermaid
 flowchart TB
@@ -755,6 +766,42 @@ flowchart TB
 
     style IDENTITY fill:#78350f,stroke:#f59e0b,color:#fef3c7
     style DATA_SEC fill:#14532d,stroke:#10b981,color:#d1fae5
+```
+
+### Authentication Flow
+
+All requests pass through Authentik SSO using Traefik ForwardAuth middleware. The API trusts identity headers (`X-authentik-uid`, `X-authentik-email`, `X-authentik-name`) from the upstream proxy. There is no application-layer cryptographic verification (no JWT, no HMAC, no mTLS).
+
+On every authenticated request, the auth middleware upserts the user in the database, associates them with their firm (default "Personal" firm created atomically if none exists), and attaches user context to the request.
+
+### Auth Hardening
+
+- **Transaction-protected ADMIN promotion** — First-user ADMIN assignment wrapped in a database transaction with re-check to prevent race conditions
+- **Atomic firm creation** — Default firm created via `upsert` on a deterministic ID, preventing duplicates under concurrent requests
+- **Cross-tenant impersonation guard** — Admin demo mode impersonation restricted to users within the same firm
+- **Firm ID enforcement** — Utility helper validates non-null firm assignment before any data access, returning 403 if missing
+
+### Data Separation
+
+All database queries are filtered by the authenticated user's `firmId`. No cross-firm access is possible. Document storage paths are organized by case ID with path traversal protection via `path.resolve()` validation.
+
+### Audit Logging
+
+Two audit systems: a system-wide `AuditLog` recording user actions (who, what, when, where) and a per-case `CaseEventLog` tracking data mutations for the recalibration engine.
+
+### Trust Boundaries
+
+```mermaid
+flowchart LR
+    INTERNET["Internet"] --> PROXY["Identity Proxy<br/><i>Authentik + Traefik</i>"]
+    PROXY --> AETHER["Aether Container<br/><i>Not directly exposed</i>"]
+    AETHER --> PG["PostgreSQL<br/><i>Internal network</i>"]
+    AETHER --> NAS["NAS Storage<br/><i>NFS mount</i>"]
+
+    style PROXY fill:#78350f,stroke:#f59e0b,color:#fef3c7
+    style AETHER fill:#1e293b,stroke:#3b82f6,color:#e2e8f0
+    style PG fill:#14532d,stroke:#10b981,color:#d1fae5
+    style NAS fill:#14532d,stroke:#10b981,color:#d1fae5
 ```
 
 **Current limitations:**
@@ -792,9 +839,30 @@ flowchart LR
 
 ---
 
+## Testing
+
+Unit test suite using **vitest 4.0** with `@vitest/coverage-v8`:
+
+| Test File | Tests | Coverage |
+|-----------|-------|----------|
+| extractJson | 76 | JSON parsing pipeline |
+| embeddings | 43 | Chunking + embedding |
+| rateLimiter | 35 | Rate limit enforcement |
+| validate | 22 | Zod schema validation |
+| storage | 19 | File storage operations |
+| llmOutputSchemas | 17 | LLM output validation |
+| auth | 16 | Auth middleware + hardening |
+| analysisLifecycle | 15 | Analysis lifecycle helpers |
+| contextAssembler | 9 | Context assembly pipeline |
+| **Total** | **252** | |
+
+Coverage thresholds enforced at **80% line coverage** for correctness-critical services: `embeddings.ts`, `rateLimiter.ts`, `recalibration.ts`, `signals.ts`, `intelligence.ts`.
+
+---
+
 ## Deployment
 
-Single Docker container deployed within the Eola Gateway homelab stack. The container runs alongside Ollama (local LLM), PostgreSQL, Authentik, and supporting infrastructure services.
+Single Docker container deployed within the Eola Gateway homelab stack.
 
 ```mermaid
 flowchart TB
@@ -825,21 +893,27 @@ flowchart TB
 
 ---
 
-## Tech Stack
+## Design Decisions
 
-| Layer | Technology | Purpose |
-|-------|-----------|---------|
-| Frontend | React 19, TypeScript, Vite, Tailwind CSS | Single-page application |
-| Backend | Express.js, TypeScript | REST API server (64 endpoints, 9 route modules) |
-| Database | PostgreSQL 16, Prisma ORM, pgvector | 25 models, relational data + vector search |
-| AI (Primary) | Google Gemini Pro/Flash | Complex reasoning + chat |
-| AI (Fallback) | Ollama + Llama 3.1:8b | Local inference, offline capability |
-| Embeddings | Google Embedding API | 768-dim document vectors |
-| Transcription | OpenAI Whisper API (whisper-1) | Voice input for simulators |
-| Intelligence | Context assembler, signals, persistence, recalibration, knowledge graph | Versioned analysis with staleness detection |
-| Auth | Authentik SSO via ForwardAuth | Identity proxy (header-based) |
-| Storage | NAS-mounted filesystem | Document persistence |
-| Containerization | Docker + Docker Compose | Deployment + isolation |
+Key technical decisions and their rationale:
+
+| Decision | Rationale | Trade-off |
+|----------|-----------|-----------|
+| **Task-based model routing** | Complex reasoning (strategy, audit) needs the most capable model; lighter tasks (chat, scans) benefit from lower latency | More routing complexity, but optimized cost-to-quality ratio |
+| **Local LLM fallback** | Ensures availability during API outages; provides offline capability | Requires GPU resources; output quality may differ from primary models |
+| **Input hash deduplication** | Prevents token waste on unchanged inputs; instant response for repeated queries | Additional DB lookup per request; cache invalidation complexity |
+| **Versioned analysis persistence** | Enables historical comparison; full audit trail of how analysis evolved | Storage growth over time; more complex "latest" queries |
+| **Prisma ORM** | Type-safe database access; schema migration tooling; generated types | Additional abstraction layer; less query optimization control |
+| **pgvector over dedicated vector DB** | Keeps all data in one system; simplifies deployment | May not scale to massive vector collections |
+| **Multi-tenant via firmId filter** | Single database simplifies deployment; standard pattern | Risk of query filter bugs; shared DB resources |
+| **Soft delete for archiving** | Enables restore; preserves audit trail; prevents accidental data loss | Archived data consumes storage; queries must filter |
+| **Header-based auth (no JWT)** | Simpler implementation; standard pattern for services behind proxies | No cryptographic verification at app layer; depends on network isolation |
+| **Minimal RBAC enforcement** | Deferred full implementation; role field ready for future enforcement | Viewer role is effectively non-functional |
+| **Single Docker container** | Simplified deployment; no inter-service networking complexity | Cannot scale frontend/backend independently |
+| **NAS-mounted storage** | Uses existing infrastructure; cost-effective; simple file access | Network filesystem latency; no built-in replication |
+| **In-process job queue** | Simpler than distributed queue; sufficient for single instance | Single-instance only; designed for replacement by pg-boss or BullMQ |
+| **Service-level rate limiting** | Fine-grained per-model control; wraps API calls, not middleware | More complex than middleware-based; FIFO queues for fair ordering |
+| **60s recalibration debouncing** | Batches rapid-fire mutations (bulk uploads) efficiently | Staleness indicators may lag reality by up to 60 seconds |
 
 ---
 
@@ -849,6 +923,6 @@ Copyright 2026 Jake Sadoway. All rights reserved. This repository is shared for 
 
 ---
 
-**[← Back to README](README.md)** | **[View Features →](FEATURES.md)** | **[Implementation Details →](IMPLEMENTATION.md)** | **[Security Model →](SECURITY.md)**
+**[<- Back to README](README.md)** | **[View Features ->](FEATURES.md)**
 
-<p align="right"><a href="#aether--system-architecture">↑ Back to top</a></p>
+<p align="right"><a href="#aether--system-architecture">Back to top</a></p>

@@ -7,13 +7,10 @@
 
 ---
 
-## 📚 Related Documentation
+## Related Documentation
 
 - **[README.md](README.md)** — Platform overview, capabilities, tech stack
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** — System diagrams, data model, AI engine
-- **[IMPLEMENTATION.md](IMPLEMENTATION.md)** — Technical implementation summary
-- **[SECURITY.md](SECURITY.md)** — Security model and authentication
-- **[TECHNICAL_DECISIONS.md](TECHNICAL_DECISIONS.md)** — Design decisions and trade-offs
 
 ---
 
@@ -38,16 +35,16 @@
 ## Core Platform
 
 ### Case Management
-Organize cases with full party tracking, document management, timeline events, and notes. Cases can be archived (soft-delete) from the Matters view and restored or permanently deleted from Settings > Archived Matters. Multi-firm architecture with per-case data separation — all queries filtered by the authenticated user's firmId. Role fields (Admin / Member / Viewer) are stored per user; currently, only case deletion is restricted to Admin role. Other RBAC enforcement is on the roadmap.
+Organize cases with full party tracking, document management, timeline events, and notes. Cases can be archived (soft-delete) from the Matters view and restored or permanently deleted from Settings > Archived Matters. Multi-firm architecture with per-case data separation — all queries filtered by the authenticated user's firmId. Parties are auto-populated from case titles (e.g., 'Smith v. Jones' creates Plaintiff and Defendant entries) and from document analysis (extracted plaintiff, defendant, and judge). Role fields (Admin / Member / Viewer) are stored per user; currently, only case deletion is restricted to Admin role. Other RBAC enforcement is on the roadmap.
 
 ### Document Intelligence
-Upload and analyze legal documents using document text extraction and AI-assisted analysis. Supports PDFs, Office documents (Word, Excel, PowerPoint, RTF), and text files up to 50MB. Unsupported file types are rejected at upload with a clear error message. On upload, documents are processed through an asynchronous background pipeline: text extraction, AI-powered analysis, timeline event creation, and vector embedding generation. Documents are categorized and stored on NAS-mounted persistent storage. All uploaded documents become part of the case context available to every AI module. Document uploads trigger the recalibration engine to check if existing analyses are stale.
+Upload and analyze legal documents using document text extraction and AI-assisted analysis. Supports PDFs, Office documents (Word, Excel, PowerPoint, RTF), and text files up to 50MB. Unsupported file types are rejected at upload with a clear error message. On upload, documents are processed through an asynchronous background pipeline: text extraction, AI-powered analysis, timeline event creation, party extraction, and vector embedding generation. Documents are categorized and stored on NAS-mounted persistent storage. All uploaded documents become part of the case context available to every AI module. Document uploads trigger the recalibration engine to check if existing analyses are stale.
 
 ### Semantic Search (RAG)
 All uploaded documents are chunked into semantically meaningful segments and embedded as 768-dimensional vectors using Google's embedding model. When any AI module processes a query, the system retrieves the most relevant document chunks via cosine similarity search (pgvector), injecting source material into the AI context. This grounds AI responses in the actual case record rather than relying solely on model knowledge.
 
 ### Executive Case Brief
-One-screen summary answering five questions about any case: What's the posture? What deadlines are critical? Where does discovery stand? What are the risk signals? What needs attention? Aggregates case data (status, jurisdiction, court, judge), upcoming deadlines with countdown, discovery metrics, document breakdown by category, party summary, risk signals (overdue deadlines, unverified events), and recent activity — all without an AI call (pure data aggregation for instant response).
+One-screen summary answering five questions about any case: What's the posture? What deadlines are critical? Where does discovery stand? What are the risk signals? What needs attention? Aggregates case data (status, jurisdiction, court, judge), upcoming deadlines with countdown, discovery metrics, document breakdown by category, party summary with inline party management (add/edit/delete), risk signals (overdue deadlines, unverified events), and recent activity — all without an AI call (pure data aggregation for instant response).
 
 ### Timeline Tracking
 Chronological event management with three display modes: Timeline (chronological stream), Month Calendar, and Week Calendar. Events can be marked as verified or unverified, tagged by type (free-form string, commonly: filing, hearing, deposition, deadline, document, general), and surfaced in case briefings. Auto-extracted events are linked to their source document via `sourceDocumentId`. Deadline events drive urgency signals in case briefings. Calendar views provide spatial awareness of event density and deadline proximity.
@@ -321,6 +318,6 @@ Copyright 2026 Jake Sadoway. All rights reserved. Shared for portfolio and demon
 
 ---
 
-**[← Back to README](README.md)** | **[View Architecture →](ARCHITECTURE.md)** | **[Implementation Details →](IMPLEMENTATION.md)** | **[Security Model →](SECURITY.md)**
+**[<- Back to README](README.md)** | **[View Architecture ->](ARCHITECTURE.md)**
 
 <p align="right"><a href="#aether--feature-overview">↑ Back to top</a></p>
