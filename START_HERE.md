@@ -32,7 +32,8 @@ Aether is an **AI-assisted litigation intelligence platform** that processes raw
 - **Citation Verification** — LLM-based plausibility check for legal citations
 - **Case Theory Map** — Maps claims to elements to evidence, exposing gaps in proof
 - **Key Exhibits** — Exhibit analysis with relevance ranking and trial preparation priority
-- **Hearing/Deposition Simulators** — Practice arguments with AI opposing counsel
+- **Hearing Simulator** — Practice oral arguments against an AI judge or opposing counsel
+- **Deposition Simulator** — Practice depositions against hostile AI opposing counsel
 - **Settlement Analysis** — AI-generated settlement scenario discussion
 - **Privilege Scanner** — AI-based first-pass scan for protected content
 - **Document Intelligence** — Text extraction and AI analysis of uploaded files
@@ -55,7 +56,7 @@ Aether is an **AI-assisted litigation intelligence platform** that processes raw
 | Layer | Technology |
 |-------|-----------|
 | **Frontend** | React 19, TypeScript, Vite, Tailwind CSS |
-| **Backend** | Express.js, TypeScript, Prisma ORM (25 models, 66 endpoints) |
+| **Backend** | Express.js, TypeScript, Prisma ORM (25 models, 64 endpoints) |
 | **Database** | PostgreSQL 16, pgvector extension |
 | **AI (Primary)** | Google Gemini Pro (strategy, audit, drafting) · Gemini Flash (chat, simulation) |
 | **AI (Fallback)** | Ollama + Llama 3.1 — local inference |

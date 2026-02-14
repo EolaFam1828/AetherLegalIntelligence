@@ -18,7 +18,7 @@
 
   <p>
     <img src="https://img.shields.io/badge/modules-21-blue?style=flat-square" alt="21 Modules" />
-    <img src="https://img.shields.io/badge/endpoints-66-green?style=flat-square" alt="66 Endpoints" />
+    <img src="https://img.shields.io/badge/endpoints-64-green?style=flat-square" alt="64 Endpoints" />
     <img src="https://img.shields.io/badge/models-25-orange?style=flat-square" alt="25 Data Models" />
     <img src="https://img.shields.io/badge/status-operational-brightgreen?style=flat-square" alt="Status: Operational" />
     <img src="https://img.shields.io/badge/docs--only_repo-portfolio-purple?style=flat-square" alt="Documentation Only" />
@@ -226,7 +226,7 @@ flowchart TB
     end
 
     subgraph API["Application Layer"]
-        EX["Express.js API<br/><i>66 endpoints</i>"]
+        EX["Express.js API<br/><i>64 endpoints</i>"]
     end
 
     subgraph AI["AI Engine"]
@@ -275,7 +275,7 @@ flowchart TB
 | Layer | Technology |
 |-------|-----------|
 | Frontend | React 19, TypeScript, Vite, Tailwind CSS |
-| Backend | Express.js, TypeScript, Prisma ORM (25 models, 66 endpoints) |
+| Backend | Express.js, TypeScript, Prisma ORM (25 models, 64 endpoints) |
 | Database | PostgreSQL 16, pgvector extension |
 | AI (Primary) | Google Gemini Pro (strategy, audit, drafting) · Gemini Flash (chat, simulation) |
 | AI (Fallback) | Ollama + Llama 3.1 — local inference when Gemini is unavailable |

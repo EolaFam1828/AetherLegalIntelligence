@@ -45,12 +45,14 @@ flowchart TB
         UI["React 19 + TypeScript SPA"]
     end
 
-    subgraph EDGE["Identity Proxy"]
+    subgraph EDGE["Edge + Identity"]
+        CF["Cloudflare Tunnel"]
+        TR["Traefik v3.6<br/><i>TLS 1.3</i>"]
         AK["Authentik SSO<br/><i>ForwardAuth Middleware</i>"]
     end
 
     subgraph API["Application Layer"]
-        EX["Express.js API Server<br/><i>TypeScript · 66 endpoints · 9 route modules</i>"]
+        EX["Express.js API Server<br/><i>TypeScript · 64 endpoints · 9 route modules</i>"]
         MW["Middleware Stack<br/><i>Auth · Audit · Validation</i>"]
     end
 
@@ -78,7 +80,9 @@ flowchart TB
         FS["NAS-Mounted Storage<br/><i>Document files · Uploads</i>"]
     end
 
-    UI -->|HTTPS| AK
+    UI -->|HTTPS| CF
+    CF --> TR
+    TR -->|ForwardAuth| AK
     AK -->|ForwardAuth| EX
     EX --> MW --> CTX
     CTX --> SIG
@@ -600,7 +604,7 @@ erDiagram
 
 ## API Surface
 
-66 RESTful endpoints organized across 9 route modules plus 2 health endpoints. Every mutating endpoint writes to the audit log. All POST and PATCH endpoints validated via Zod schemas (26 schemas). CRUD mutations trigger the recalibration engine to detect stale analyses.
+64 RESTful endpoints organized across 9 route modules plus 2 health endpoints. Every mutating endpoint writes to the audit log. All POST and PATCH endpoints validated via Zod schemas (26 schemas). CRUD mutations trigger the recalibration engine to detect stale analyses.
 
 <details>
 <summary><strong>View API surface diagram</strong> — 64 endpoints across 9 route modules + health</summary>
@@ -826,7 +830,7 @@ flowchart TB
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
 | Frontend | React 19, TypeScript, Vite, Tailwind CSS | Single-page application |
-| Backend | Express.js, TypeScript | REST API server (66 endpoints, 9 route modules) |
+| Backend | Express.js, TypeScript | REST API server (64 endpoints, 9 route modules) |
 | Database | PostgreSQL 16, Prisma ORM, pgvector | 25 models, relational data + vector search |
 | AI (Primary) | Google Gemini Pro/Flash | Complex reasoning + chat |
 | AI (Fallback) | Ollama + Llama 3.1:8b | Local inference, offline capability |

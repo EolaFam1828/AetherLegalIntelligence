@@ -204,7 +204,7 @@ Every document upload triggers an asynchronous background pipeline:
 
 ### Endpoint Organization
 
-66 RESTful endpoints across 9 route modules plus 2 health endpoints:
+64 RESTful endpoints across 9 route modules plus 2 health endpoints:
 
 | Module | Endpoints | Coverage |
 |--------|-----------|----------|
