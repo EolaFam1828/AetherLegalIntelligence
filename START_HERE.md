@@ -22,7 +22,7 @@
 
 Aether is an **AI-assisted litigation intelligence platform** that processes raw case data — pleadings, depositions, discovery productions, expert reports — into structured, AI-generated analysis for attorney review.
 
-### Core Capabilities (17 Modules)
+### Core Capabilities (21 Modules)
 
 - **Case Chat Assistant** — Context-aware chat with RAG-powered document retrieval
 - **War Room** — Strategic SWOT analysis with recommended actions
@@ -30,6 +30,8 @@ Aether is an **AI-assisted litigation intelligence platform** that processes raw
 - **Discovery Generator** — Draft interrogatories, RFPs, and RFAs
 - **Document Drafting** — AI-generated draft text for motions and briefs
 - **Citation Verification** — LLM-based plausibility check for legal citations
+- **Case Theory Map** — Maps claims to elements to evidence, exposing gaps in proof
+- **Key Exhibits** — Exhibit analysis with relevance ranking and trial preparation priority
 - **Hearing/Deposition Simulators** — Practice arguments with AI opposing counsel
 - **Settlement Analysis** — AI-generated settlement scenario discussion
 - **Privilege Scanner** — AI-based first-pass scan for protected content
@@ -53,7 +55,7 @@ Aether is an **AI-assisted litigation intelligence platform** that processes raw
 | Layer | Technology |
 |-------|-----------|
 | **Frontend** | React 19, TypeScript, Vite, Tailwind CSS |
-| **Backend** | Express.js, TypeScript, Prisma ORM (25 models, 63 endpoints) |
+| **Backend** | Express.js, TypeScript, Prisma ORM (25 models, 66 endpoints) |
 | **Database** | PostgreSQL 16, pgvector extension |
 | **AI (Primary)** | Google Gemini Pro (strategy, audit, drafting) · Gemini Flash (chat, simulation) |
 | **AI (Fallback)** | Ollama + Llama 3.1 — local inference |

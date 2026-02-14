@@ -64,12 +64,28 @@ Each AI module reads from other modules' latest outputs:
 
 | Module | Reads From |
 |--------|-----------|
-| **Strategy** | Red Team, Discovery Backlog, Valuation, Case Theory Map |
-| **Red Team** | Strategy, Case Theory Map |
-| **Discovery** | Strategy, Red Team, Key Exhibits |
-| **Valuation** | Strategy, Red Team, Discovery Backlog |
-| **Draft** | Strategy, Discovery, Case Theory Map |
+| **Strategy** | Red Team, Valuation, Discovery |
+| **Red Team** | Strategy, Discovery |
+| **Discovery** | Strategy, Red Team |
+| **Valuation** | Strategy, Red Team, Discovery |
+| **Draft** | Strategy, Red Team, Discovery, Valuation |
+| **Case Theory Map** | Strategy, Red Team, Discovery |
+| **Key Exhibits** | Strategy, Red Team, Case Theory Map |
+| **Privilege Scan** | (standalone — no cross-module reads) |
 | **Citation Check** | (standalone — no cross-module reads) |
+
+### Analysis Lifecycle Service
+
+Shared helpers that centralize duplicated lifecycle patterns across all AI modules:
+
+- **`runAnalysisModule()`** — Full lifecycle: enriched context → dedup check → LLM call → output validation → persist → recalibrate
+- **`runRefinement()`** — Refinement variant: loads previous analysis, appends feedback, runs LLM, persists new version
+- **`buildAnalysisMeta()`** — Constructs response metadata (analysis ID, version, staleness, model info)
+- **`getSignalsSnapshot()`** / **`getModelName()`** — Shared utilities for signal serialization and task-to-model mapping
+
+### Background Job Claiming
+
+Job claiming is atomic via database transaction with `updateMany` + status filter — prevents duplicate execution if the process restarts or (in future) if multiple instances poll the same queue.
 
 ### Knowledge Graph
 
@@ -90,7 +106,7 @@ A lightweight directed graph (`GraphEdge` table) connects case entities with typ
 
 Each request type maps to the optimal model:
 
-- **Gemini Pro** — strategy, draft, audit, valuate, analyze, discovery, citation-check (complex reasoning)
+- **Gemini Pro** — strategy, draft, audit, valuate, analyze, discovery, citation-check, case-theory, key-exhibits (complex reasoning)
 - **Gemini Flash** — chat, scan, simulate (low latency)
 - **Ollama (Llama 3.1:8b)** — Local fallback for all tasks
 
@@ -188,14 +204,15 @@ Every document upload triggers an asynchronous background pipeline:
 
 ### Endpoint Organization
 
-63 RESTful endpoints across 9 route modules:
+66 RESTful endpoints across 9 route modules plus 2 health endpoints:
 
 | Module | Endpoints | Coverage |
 |--------|-----------|----------|
+| **Health** | 2 | GET /health (public), GET /health/detailed (auth-required, rate limit stats) |
 | **Auth** | 1 | GET /auth/me |
 | **Case Management** | 25 | CRUD for cases, parties, documents, events, notes |
-| **AI Intelligence** | 9 | Chat, strategy, audit, discovery, draft, citations |
-| **Intelligence Persistence** | 21 | Analyses, signals, graph, priorities, vulnerabilities, drafts, discovery, citations |
+| **AI Intelligence** | 8 | Chat, strategy, audit, discovery, draft, citations, case-theory, key-exhibits |
+| **Intelligence Persistence** | 21 | Analyses, signals, graph, priorities, vulnerabilities, drafts, discovery, citations, simulations |
 | **Simulation** | 3 | Hearing, deposition, transcribe |
 | **Tools** | 3 | Document analysis, valuation, privilege scan |
 | **Admin** | 3 | Demo mode, impersonation, reset |
@@ -213,9 +230,21 @@ Every document upload triggers an asynchronous background pipeline:
 
 ### Validation
 
-- All POST endpoints validated via Zod schemas
+- All POST and PATCH endpoints validated via 26 Zod schemas (17 request + 4 PATCH update + 5 analysis status)
 - CRUD mutations trigger recalibration engine
 - Every mutating endpoint writes to audit log
+- LLM output validated via Zod schemas before persistence (structurally broken responses rejected)
+
+### Health Endpoints
+
+- `GET /api/health` — Public, minimal (status + version)
+- `GET /api/health/detailed` — Auth-required (includes live rate limit RPM/TPM/RPD usage + queue depth per tier)
+
+### Server Configuration
+
+- Request timeout: 120 seconds (accommodates long LLM calls)
+- Keep-alive timeout: 65 seconds
+- JSON body limit: 10MB (file uploads handled separately via multer)
 
 ---
 
@@ -270,6 +299,27 @@ Multi-tenant architecture with 25 Prisma models across 9 migrations:
 
 - **CaseEventLog** — Per-case data mutation log
 - **AuditLog** — System-wide action audit trail
+
+---
+
+## Testing
+
+Unit test suite using **vitest 4.0** with `@vitest/coverage-v8`:
+
+| Test File | Tests | Coverage Target |
+|-----------|-------|----------------|
+| extractJson | 76 | JSON parsing pipeline |
+| embeddings | 43 | Chunking + embedding |
+| rateLimiter | 35 | Rate limit enforcement (80% threshold) |
+| validate | 22 | Zod schema validation |
+| storage | 19 | File storage operations |
+| llmOutputSchemas | 17 | LLM output validation |
+| auth | 16 | Auth middleware + hardening |
+| analysisLifecycle | 15 | Analysis lifecycle helpers |
+| contextAssembler | 9 | Context assembly pipeline |
+| **Total** | **252** | |
+
+Coverage thresholds enforced at **80% line coverage** for correctness-critical services: `embeddings.ts`, `rateLimiter.ts`, `recalibration.ts`, `signals.ts`, `intelligence.ts`.
 
 ---
 

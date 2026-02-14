@@ -17,8 +17,8 @@
   </p>
 
   <p>
-    <img src="https://img.shields.io/badge/modules-17-blue?style=flat-square" alt="17 Modules" />
-    <img src="https://img.shields.io/badge/endpoints-63-green?style=flat-square" alt="63 Endpoints" />
+    <img src="https://img.shields.io/badge/modules-21-blue?style=flat-square" alt="21 Modules" />
+    <img src="https://img.shields.io/badge/endpoints-66-green?style=flat-square" alt="66 Endpoints" />
     <img src="https://img.shields.io/badge/models-25-orange?style=flat-square" alt="25 Data Models" />
     <img src="https://img.shields.io/badge/status-operational-brightgreen?style=flat-square" alt="Status: Operational" />
     <img src="https://img.shields.io/badge/docs--only_repo-portfolio-purple?style=flat-square" alt="Documentation Only" />
@@ -165,10 +165,10 @@ Visual walkthrough of Aether's interface and capabilities:
 
 ## Core Capabilities
 
-### 17 Integrated Modules
+### 21 Integrated Modules
 
 <details>
-<summary><strong>View all 17 modules</strong> — Click to expand the full capabilities table</summary>
+<summary><strong>View all 21 modules</strong> — Click to expand the full capabilities table</summary>
 
 <br />
 
@@ -192,6 +192,8 @@ Visual walkthrough of Aether's interface and capabilities:
 | **Intelligence Persistence** | All AI module outputs versioned as CaseAnalysis records with input hash deduplication, staleness detection, and cross-module dependency tracking | ✅ Operational |
 | **Case Signals** | Pre-computed case health metrics (overdue deadlines, unverified events, risk levels) injected into every AI prompt and used for staleness detection | ✅ Operational |
 | **Recalibration Engine** | Reactive staleness detection — when case data changes, affected analyses are automatically flagged as stale with severity levels (minor, stale, critical) | ✅ Operational |
+| **Case Theory Map** | Maps legal claims to required elements, elements to supporting/contradicting evidence, and evidence to source documents — exposing gaps where required elements lack proof. Outputs structured JSON with coherence scoring, critical gaps, and recommended evidence to obtain | ✅ Operational |
+| **Key Exhibits** | Catalogs and analyzes the most critical evidence in a case — relevance ranking, authentication assessment, opposing objections, and trial preparation priority. Maps each exhibit to the claims and elements it supports | ✅ Operational |
 | **Knowledge Graph** | Lightweight directed graph of relationships between case entities (supports, contradicts, mentions) written by AI modules and queryable via API | ✅ Operational |
 
 </details>
@@ -224,7 +226,7 @@ flowchart TB
     end
 
     subgraph API["Application Layer"]
-        EX["Express.js API<br/><i>63 endpoints</i>"]
+        EX["Express.js API<br/><i>66 endpoints</i>"]
     end
 
     subgraph AI["AI Engine"]
@@ -273,7 +275,7 @@ flowchart TB
 | Layer | Technology |
 |-------|-----------|
 | Frontend | React 19, TypeScript, Vite, Tailwind CSS |
-| Backend | Express.js, TypeScript, Prisma ORM (25 models, 63 endpoints) |
+| Backend | Express.js, TypeScript, Prisma ORM (25 models, 66 endpoints) |
 | Database | PostgreSQL 16, pgvector extension |
 | AI (Primary) | Google Gemini Pro (strategy, audit, drafting) · Gemini Flash (chat, simulation) |
 | AI (Fallback) | Ollama + Llama 3.1 — local inference when Gemini is unavailable |

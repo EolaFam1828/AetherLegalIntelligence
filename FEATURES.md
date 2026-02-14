@@ -113,6 +113,35 @@ Citation results are persisted as `CitationRecord` entries with status tracking,
 > [!WARNING]
 > Citation "verification" is LLM confidence assessment only — not authoritative legal database confirmation.
 
+### Case Theory Map
+Maps the legal theory of the case by connecting claims to their required elements, elements to supporting and contradicting evidence, and evidence to source documents and witnesses. Outputs structured JSON with:
+- **Claims** — each legal claim or cause of action with its legal basis
+- **Elements** — required elements per claim with proof status (proven / partially proven / unproven / contested)
+- **Evidence Mapping** — supporting and contradicting evidence per element with strength ratings
+- **Gap Analysis** — per-element identification of where required elements lack sufficient evidence
+- **Theory Coherence Score** — 0-100 assessment of overall theory strength
+- **Critical Gaps** — top-level list of the most significant evidentiary gaps
+- **Recommended Evidence** — suggested evidence to obtain to strengthen the theory
+
+Reads from Strategy, Red Team, and Discovery modules via the cross-module dependency graph to understand case posture before mapping theory. Supports iterative refinement via feedback loop. Each analysis is persisted as a versioned `CaseAnalysis` record with input hash deduplication.
+
+**Current limitation:** Theory map is persisted and queryable but not yet rendered as a visual graph in the UI. The structured data is displayed in a card-based layout.
+
+### Key Exhibits
+Catalogs and analyzes the most critical evidence in a case, serving as an exhibit preparation workbench. Outputs structured JSON with:
+- **Exhibits** — priority-ranked list of key exhibits with titles and source documents
+- **Exhibit Type** — documentary, testimonial, physical, demonstrative, or digital
+- **Relevance Rating** — critical, important, supporting, or marginal
+- **Proves** — what each exhibit demonstrates
+- **Claims Supported** — which legal claims each exhibit supports
+- **Authentication** — method, challenges, and opposing objections per exhibit
+- **Trial Preparation Notes** — per-exhibit preparation guidance
+- **Exhibit Strategy** — overall approach to exhibit presentation
+- **Authentication Risks** — systemic authentication concerns
+- **Missing Exhibits** — evidence that should exist but hasn't been located
+
+Reads from Strategy, Red Team, and Case Theory Map modules via the cross-module dependency graph. Supports iterative refinement via feedback loop. Each analysis is persisted as a versioned `CaseAnalysis` record with input hash deduplication.
+
 ---
 
 ## Intelligence Persistence
@@ -134,8 +163,11 @@ Each analysis stores a snapshot of the case signals (metrics) at the time it was
 ### Cross-Module Intelligence
 Each AI module reads the latest outputs of other modules via a dependency graph. Strategy reads Red Team and Discovery findings. Discovery reads Strategy priorities. This creates a feedback loop where improvements to one module enrich all dependent modules.
 
+### LLM Output Validation
+All AI module outputs are validated against Zod schemas before persistence. Schemas are intentionally lenient (most fields optional) since LLM output is non-deterministic — the goal is catching structurally broken responses (e.g., string where object expected, missing top-level keys). If validation fails, the raw output is stored and the analysis is marked FAILED. Covers: strategy, audit, discovery, valuation, citation-check, case-theory-map, and key-exhibits modules.
+
 ### Background Job Processing
-An in-process job queue polls the `AnalysisJob` table every 5 seconds. Jobs are prioritized (1=user-waiting to 5=background). This is designed to be replaced by pg-boss or BullMQ for multi-instance scaling.
+An in-process job queue polls the `AnalysisJob` table every 5 seconds. Jobs are prioritized (1=user-waiting to 5=background). Job claiming is atomic via database transaction with status filtering to prevent duplicate execution across restarts. This is designed to be replaced by pg-boss or BullMQ for multi-instance scaling.
 
 **Current limitations:** Analysis versioning is backend-only — the UI does not yet expose version history navigation or diff views. Staleness badges are computed but not yet surfaced in all UI components. The job processor is single-instance only.
 

@@ -50,13 +50,13 @@ flowchart TB
     end
 
     subgraph API["Application Layer"]
-        EX["Express.js API Server<br/><i>TypeScript · 63 endpoints · 9 route modules</i>"]
+        EX["Express.js API Server<br/><i>TypeScript · 66 endpoints · 9 route modules</i>"]
         MW["Middleware Stack<br/><i>Auth · Audit · Validation</i>"]
     end
 
     subgraph AI["AI Engine"]
         RT["Model Router<br/><i>Task-based model selection</i>"]
-        G3P["Gemini Pro<br/><i>Strategy · Drafting · Audit<br/>Valuation · Discovery</i>"]
+        G3P["Gemini Pro<br/><i>Strategy · Drafting · Audit<br/>Valuation · Discovery · Theory · Exhibits</i>"]
         G3F["Gemini Flash<br/><i>Chat · Scans · Simulation</i>"]
         OL["Ollama (Local)<br/><i>Llama 3.1 · Fallback</i>"]
     end
@@ -157,11 +157,14 @@ Each AI module reads from other modules' latest outputs to build enriched contex
 
 | Module | Reads From |
 |--------|-----------|
-| **Strategy** | Red Team, Discovery Backlog, Valuation, Case Theory Map |
-| **Red Team** | Strategy, Case Theory Map |
-| **Discovery** | Strategy, Red Team, Key Exhibits |
-| **Valuation** | Strategy, Red Team, Discovery Backlog |
-| **Draft** | Strategy, Discovery, Case Theory Map |
+| **Strategy** | Red Team, Valuation, Discovery |
+| **Red Team** | Strategy, Discovery |
+| **Discovery** | Strategy, Red Team |
+| **Valuation** | Strategy, Red Team, Discovery |
+| **Draft** | Strategy, Red Team, Discovery, Valuation |
+| **Case Theory Map** | Strategy, Red Team, Discovery |
+| **Key Exhibits** | Strategy, Red Team, Case Theory Map |
+| **Privilege Scan** | (standalone — no cross-module reads) |
 | **Citation Check** | (standalone — no cross-module reads) |
 
 ### Knowledge Graph
@@ -185,7 +188,7 @@ The AI layer uses **task-based model routing** — each request type maps to the
 flowchart LR
     REQ["Incoming<br/>Request"] --> ROUTER{"Task-Type<br/>Router"}
 
-    ROUTER -->|strategy, draft,<br/>audit, valuate,<br/>analyze, discovery,<br/>citation-check| PRO["Gemini Pro<br/><i>Complex reasoning</i>"]
+    ROUTER -->|strategy, draft,<br/>audit, valuate,<br/>analyze, discovery,<br/>citation-check,<br/>case-theory,<br/>key-exhibits| PRO["Gemini Pro<br/><i>Complex reasoning</i>"]
 
     ROUTER -->|chat, scan,<br/>simulate| FLASH["Gemini Flash<br/><i>Low latency</i>"]
 
@@ -361,6 +364,7 @@ erDiagram
     CASE ||--o{ SIMULATION_SESSION : "simulates"
     CASE ||--o{ CITATION_RECORD : "verifies"
     DOCUMENT ||--o{ DOCUMENT_CHUNK : "embedded as"
+    DOCUMENT ||--o{ DOCUMENT_TAG : "tagged with"
     DOCUMENT ||--o{ DOCUMENT_JOB : "tracked by"
     DOCUMENT ||--o{ EVENT : "source of"
     CASE_ANALYSIS ||--o{ STRATEGIC_PRIORITY : "produces"
@@ -378,7 +382,7 @@ erDiagram
 
     USER {
         uuid id PK
-        string ssoUid UK
+        string authentikUid UK
         string email UK
         string name
         enum role "ADMIN | MEMBER | VIEWER"
@@ -414,11 +418,17 @@ erDiagram
         string inputHash "SHA-256 for deduplication"
         text inputSnapshot
         json signalsSnapshot "For staleness comparison"
-        enum triggerType "MANUAL | AUTO | CASCADE | REFINEMENT"
+        enum triggerType "MANUAL | AUTO_RECALIBRATION | CASCADE | REFINEMENT"
         uuid parentId FK "Version chain"
         text focusArea
+        text feedback
         string generatedBy
         string promptVersion
+        json confidence
+        json knownGaps
+        float modelTemperature
+        int modelSeed
+        int tokensUsed
     }
 
     CASE_SIGNAL {
@@ -448,8 +458,9 @@ erDiagram
         uuid analysisId FK
         string title
         text rationale
+        text requiredEvidence
         int sequenceOrder
-        enum status "PLANNED | IN_PROGRESS | EXECUTED"
+        enum status "PLANNED | IN_PROGRESS | EXECUTED | ABANDONED"
     }
 
     VULNERABILITY {
@@ -505,6 +516,13 @@ erDiagram
         uuid documentId FK
     }
 
+    DOCUMENT_TAG {
+        uuid id PK
+        string name
+        string color
+        uuid documentId FK
+    }
+
     PARTY {
         uuid id PK
         string name
@@ -539,8 +557,10 @@ erDiagram
         uuid id PK
         uuid caseId FK
         string citation
-        enum status "VERIFIED | SUSPICIOUS | LIKELY_FABRICATED"
+        enum status "VERIFIED | SUSPICIOUS | LIKELY_FABRICATED | USER_CONFIRMED"
         float confidence
+        string_array usedIn
+        datetime verifiedAt
     }
 
     ANALYSIS_JOB {
@@ -580,10 +600,10 @@ erDiagram
 
 ## API Surface
 
-63 RESTful endpoints organized by domain across 9 route modules. Every mutating endpoint writes to the audit log. All POST endpoints validated via Zod schemas. CRUD mutations trigger the recalibration engine to detect stale analyses.
+66 RESTful endpoints organized across 9 route modules plus 2 health endpoints. Every mutating endpoint writes to the audit log. All POST and PATCH endpoints validated via Zod schemas (26 schemas). CRUD mutations trigger the recalibration engine to detect stale analyses.
 
 <details>
-<summary><strong>View API surface diagram</strong> — 63 endpoints across 9 route modules</summary>
+<summary><strong>View API surface diagram</strong> — 64 endpoints across 9 route modules + health</summary>
 
 <br />
 
@@ -601,13 +621,15 @@ flowchart TB
         C5["CRUD /cases/:id/notes"]
     end
 
-    subgraph AI_INTEL["AI Intelligence — 9 endpoints"]
+    subgraph AI_INTEL["AI Intelligence — 8 endpoints"]
         I1["POST /chat<br/><i>Context-aware legal advisor<br/>+ RAG retrieval + memory</i>"]
         I2["POST /strategy<br/><i>War Room SWOT analysis</i>"]
         I3["POST /audit<br/><i>Red Team vulnerability scan</i>"]
         I4["POST /discovery<br/><i>Generate interrogatories,<br/>RFPs, RFAs</i>"]
         I5["POST /draft<br/><i>Motion & brief drafting</i>"]
         I6["POST /verify-citations<br/><i>LLM citation plausibility check</i>"]
+        I7["POST /case-theory<br/><i>Claims → elements → evidence map</i>"]
+        I8["POST /key-exhibits<br/><i>Exhibit analysis & prioritization</i>"]
     end
 
     subgraph INTEL_API["Intelligence Persistence — 21 endpoints"]
@@ -628,6 +650,11 @@ flowchart TB
         T1["POST /analyze-document<br/><i>Document analysis</i>"]
         T2["POST /tools/valuate<br/><i>Settlement valuation</i>"]
         T3["POST /tools/scan<br/><i>Privilege scanner</i>"]
+    end
+
+    subgraph HEALTH["Health — 2 endpoints"]
+        H1["GET /health<br/><i>Public status check</i>"]
+        H2["GET /health/detailed<br/><i>Auth-required · rate limit stats</i>"]
     end
 
     subgraph ADMIN["Admin — 3 endpoints"]
@@ -799,7 +826,7 @@ flowchart TB
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
 | Frontend | React 19, TypeScript, Vite, Tailwind CSS | Single-page application |
-| Backend | Express.js, TypeScript | REST API server (63 endpoints, 9 route modules) |
+| Backend | Express.js, TypeScript | REST API server (66 endpoints, 9 route modules) |
 | Database | PostgreSQL 16, Prisma ORM, pgvector | 25 models, relational data + vector search |
 | AI (Primary) | Google Gemini Pro/Flash | Complex reasoning + chat |
 | AI (Fallback) | Ollama + Llama 3.1:8b | Local inference, offline capability |

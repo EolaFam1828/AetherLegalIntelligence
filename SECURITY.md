@@ -55,7 +55,7 @@ All requests pass through Authentik SSO using Traefik ForwardAuth middleware:
 
 1. **Client Request** → Identity Proxy (Authentik)
 2. **ForwardAuth Check** → Validates session
-3. **Identity Headers Injected** → `X-Forwarded-User`, `X-Forwarded-Email`, etc.
+3. **Identity Headers Injected** → `X-authentik-uid`, `X-authentik-email`, `X-authentik-name`
 4. **Request Forwarded** → Aether API
 
 ### Header-Based Authentication
@@ -71,10 +71,17 @@ The API trusts identity headers from the upstream proxy:
 
 On every authenticated request:
 
-1. Auth middleware extracts identity headers
+1. Auth middleware extracts identity headers (`X-authentik-uid`, `X-authentik-email`, `X-authentik-name`)
 2. User record is **upserted** in database (created if new, updated if exists)
-3. User is associated with their firm
+3. User is associated with their firm (default "Personal" firm created atomically via `upsert` on fixed ID)
 4. Request context includes user ID and firm ID
+
+### Auth Hardening
+
+- **Transaction-protected ADMIN promotion** — First-user ADMIN assignment wrapped in a database transaction with re-check inside to prevent TOCTOU race conditions
+- **Atomic firm creation** — Default firm created via `upsert` on a deterministic ID, preventing duplicate firms under concurrent requests
+- **Cross-tenant impersonation guard** — Admin demo mode impersonation restricted to users within the same firm (prevents cross-tenant data access)
+- **Firm ID enforcement** — Utility helper validates non-null firm assignment before any data access, returning 403 if missing
 
 ### Role Model
 
