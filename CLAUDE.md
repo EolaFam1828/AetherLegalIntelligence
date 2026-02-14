@@ -40,9 +40,9 @@ AetherLegalIntelligence/
 
 | File | Single Source For | Key Accuracy Points |
 |---|---|---|
-| `README.md` | Module capabilities table, tech stack table, limitations summary, product tour, repo structure | 21 modules, 66 endpoints, 25 data models |
-| `ARCHITECTURE.md` | System diagrams, intelligence layer, AI engine, RAG pipeline, data model ERD, API surface, security model, deployment, testing, design decisions | Mermaid diagrams, cross-module dependencies, rate limiting, auth hardening |
-| `FEATURES.md` | Per-module documentation with limitations, roadmap, jurisdictions | Every module's capabilities AND limitations, known limitations list |
+| `README.md` | Module capabilities table, tech stack table, limitations summary, product tour, repo structure | 30 modules, 90+ endpoints, 36 data models |
+| `ARCHITECTURE.md` | System diagrams, intelligence layer, AI engine, RAG pipeline, data model ERD (36 models), API surface (14 route modules), security model, deployment, testing (266 tests), design decisions | Mermaid diagrams, cross-module dependencies, rate limiting, auth hardening |
+| `FEATURES.md` | Per-module documentation with limitations, roadmap, jurisdictions | Every module's capabilities AND limitations, known limitations list, playbooks, managing-partner workflows, evidence tracking |
 
 ## Deduplication Rules
 

@@ -18,17 +18,20 @@
 
 1. [Core Platform](#core-platform)
 2. [AI Intelligence Modules](#ai-intelligence-modules)
-3. [Intelligence Persistence](#intelligence-persistence)
-4. [Case Signals](#case-signals)
-5. [Knowledge Graph](#knowledge-graph)
-6. [Simulation Modules](#simulation-modules)
-7. [Analysis Tools](#analysis-tools)
-8. [Document Processing Pipeline](#document-processing-pipeline)
-9. [Conversation Memory](#conversation-memory)
-10. [Security & Infrastructure](#security--infrastructure)
-11. [Known Limitations](#known-limitations)
-12. [Roadmap](#roadmap)
-13. [Supported Jurisdictions](#supported-jurisdictions)
+3. [Litigation Playbooks](#litigation-playbooks)
+4. [Managing-Partner Workflows](#managing-partner-workflows)
+5. [Evidence Tracking](#evidence-tracking)
+6. [Intelligence Persistence](#intelligence-persistence)
+7. [Case Signals](#case-signals)
+8. [Knowledge Graph](#knowledge-graph)
+9. [Simulation Modules](#simulation-modules)
+10. [Analysis Tools](#analysis-tools)
+11. [Document Processing Pipeline](#document-processing-pipeline)
+12. [Conversation Memory](#conversation-memory)
+13. [Security & Infrastructure](#security--infrastructure)
+14. [Known Limitations](#known-limitations)
+15. [Roadmap](#roadmap)
+16. [Supported Jurisdictions](#supported-jurisdictions)
 
 ---
 
@@ -49,7 +52,9 @@ One-screen summary answering five questions about any case: What's the posture? 
 ### Timeline Tracking
 Chronological event management with three display modes: Timeline (chronological stream), Month Calendar, and Week Calendar. Events can be marked as verified or unverified, tagged by type (free-form string, commonly: filing, hearing, deposition, deadline, document, general), and surfaced in case briefings. Auto-extracted events are linked to their source document via `sourceDocumentId`. Deadline events drive urgency signals in case briefings. Calendar views provide spatial awareness of event density and deadline proximity.
 
-**Current limitations:** Extracted events link to the source document but do not store page numbers, source quotes, or confidence scores. Verification is a boolean toggle — no reviewer identity or timestamp is recorded. These are on the roadmap.
+Events now include confidence scores (0-1.0 float) for AI-extracted entries, evidence source references (JSON array linking to supporting documents or spans), extracted text (the original passage the event was derived from), event categorization, and a `hasTime` flag distinguishing date-only from date+time events.
+
+**Current limitations:** Verification is a boolean toggle — no reviewer identity or timestamp is recorded. This is on the roadmap.
 
 ---
 
@@ -103,7 +108,7 @@ LLM-based plausibility check for legal citations. Each citation is evaluated for
 - Whether the described holding is consistent with known law
 - Confidence rating: verified / suspicious / likely fabricated / unable to verify
 
-Citation results are persisted as `CitationRecord` entries with status tracking, confidence scores, and references to where the citation was used. Users can override the AI's assessment via the PATCH endpoint.
+Citation results are persisted as `CitationRecord` entries with status tracking, confidence scores, and references to where the citation was used. Citations can be linked to their source analysis, draft, source document, and evidence span for full traceability. A dedicated citation extractor service identifies legal citations within documents and AI outputs, links them to evidence spans, and performs LLM-based verification. Users can override the AI's assessment via the PATCH endpoint. Citations support jurisdiction-scoped and persuasive authority flags.
 
 **Important limitation:** This is LLM self-assessment, not external database verification. The system does not query Westlaw, LexisNexis, or any legal database. It checks whether citations are plausible based on the model's training data. "Verified" means the LLM is confident the citation exists — it does not guarantee accuracy. All citations must be independently verified through authoritative legal research tools before filing.
 
@@ -141,6 +146,101 @@ Reads from Strategy, Red Team, and Case Theory Map modules via the cross-module 
 
 ---
 
+## Litigation Playbooks
+
+A rule-based playbook system for codifying litigation workflows. Playbooks are defined as YAML files, validated against a JSON schema on upload, and executed against case data to produce structured recommendations.
+
+### Playbook Structure
+Each playbook defines:
+- **Triggers** — Conditions determining when the playbook applies (e.g., case type, document count, jurisdiction)
+- **Rules** — Risk, opportunity, and warning indicators with conditional logic (e.g., "deadline within 7 days", "missing expert report")
+- **Outputs** — Artifacts to generate (reports, checklists, timelines, documents)
+- **Thresholds** — Confidence and escalation gates for analysis quality
+- **Jurisdiction Templates** — State-specific templates for discovery, motions, and deadlines
+
+### Five Playbook Types
+
+| Type | Purpose |
+|------|---------|
+| **Procedural** | Deadline extraction, motion windows, sanctions risk assessment |
+| **Evidence** | Causation chain analysis, credibility traps, missing evidentiary links |
+| **Discovery** | RFP, Interrogatories, RFA generation with jurisdiction-specific packs |
+| **Hearing Prep** | Oral argument trees, anticipated judge questions, rebuttals, exhibit anchors |
+| **Red Team** | Vulnerability matrix, attack plans, counter-moves |
+
+### Execution Model
+Playbook execution evaluates triggers against case data and signals, runs rule conditions, and generates structured outputs stored in `PlaybookExecution` records with triggered rules, recommendations, and metadata. Execution status is trackable (PENDING, RUNNING, COMPLETED, FAILED). Custom playbooks can be uploaded alongside the 5 built-in templates.
+
+**Current limitations:** Playbook execution is synchronous — large playbooks on data-heavy cases may take several seconds. Playbooks cannot chain (one playbook cannot trigger another). No visual playbook editor — playbooks must be authored in YAML.
+
+---
+
+## Managing-Partner Workflows
+
+Five integrated workflows providing portfolio-level visibility and operational control for managing partners.
+
+### Portfolio Management
+Risk-ranked case list computed from a deterministic scoring algorithm (0-100 scale). Risk factors include:
+- Upcoming deadlines within 7 days (+25) or 14 days (+15)
+- Overdue discovery packets (+20)
+- Open HIGH/CRITICAL vulnerabilities (+20)
+- Motions due within 14 days (+15)
+- Expert reports due within 14 days (+15)
+- Priority-1 open tasks (+10)
+
+Includes an aggregated portfolio calendar showing all deadlines across cases, and real-time posture snapshots for discovery status, motion queue, expert tracking, and settlement stage.
+
+**Current limitation:** Portfolio view aggregates data across cases but does not support custom risk weight configuration. Risk scoring algorithm is fixed.
+
+### Task Management
+Operational task tracking with priority (1-5), owner assignment, due dates, and status lifecycle (OPEN, IN_PROGRESS, DONE, CANCELLED). Tasks can be linked to case entities — events, documents, drafts, discovery requests, vulnerabilities, and strategic priorities — via TaskLink records. Tasks support source module attribution (identifying which AI module generated the task) and source analysis linking.
+
+**Current limitation:** No task notifications or reminders. No recurring task support. Task assignment is manual — no automatic load balancing.
+
+### Discovery Orchestration
+Discovery packet tracking for both outgoing and incoming discovery (RFP, ROG, RFA, responses, productions). Each packet has status lifecycle: DRAFT, SERVED, RECEIVED, OVERDUE, DEFICIENT, CURED. The system automatically computes a per-case `DiscoveryPosture` record that tracks:
+- Overall status (NOT_STARTED, IN_PROGRESS, DISPUTE, COMPLETE)
+- Last outgoing and incoming action dates
+- Open dispute count
+- Next action hint
+
+Discovery posture updates automatically when packets are created, modified, or deleted. Document linking allows attaching served documents to packets.
+
+### Motion Practice Pipeline
+Motion queue management with type classification: MTD (Motion to Dismiss), MSJ (Motion for Summary Judgment), MTC (Motion to Compel), MIL (Motion in Limine), EXTENSION, SANCTIONS, and OTHER. Status tracking from PLANNED through DRAFTING, FILED, HEARD, and final disposition (GRANTED, DENIED, MOOT). Due date and hearing date management. Motions can link to `LegalDraft` records for draft-motion association.
+
+**Current limitation:** No automatic motion deadline calculation from rules of civil procedure. Hearing date reminders are not implemented.
+
+### Expert Witness Tracking
+Expert witness management per case with name, specialty, retention tracking (plaintiff/defendant/court), report due dates, report served dates, deposition dates, and Daubert challenge status (NONE, CHALLENGED, UPHELD, EXCLUDED). Expert data feeds into portfolio risk scoring (expert reports due within 14 days increase case risk score).
+
+### Scheduling Deadline Control
+Structured deadline extraction from scheduling orders with categorization: DISCOVERY, EXPERT, MOTIONS, MEDIATION, TRIAL, PRETRIAL. Each deadline carries a confidence score (HIGH, MEDIUM, LOW), source document traceability, and critical flag. Scheduling deadlines aggregate with timeline events (isDeadline=true) for comprehensive deadline views.
+
+**Current limitation:** Scheduling deadline extraction is manual (no automatic parsing of scheduling orders). UI for scheduling deadline management is pending.
+
+### Settlement Posture Tracking
+Per-case settlement posture with last demand, last offer, mediation date, and status tracking (UNKNOWN, PRE_MEDIATION, IN_MEDIATION, POST_MEDIATION, SETTLED, IMPASSE). Settlement posture data is surfaced in portfolio triage for cross-case negotiation awareness.
+
+---
+
+## Evidence Tracking
+
+### Evidence Spans
+The `EvidenceSpan` model tracks specific evidence passages within documents at the sub-document level. Each span records:
+- **Document and chunk linkage** — ties evidence to both the parent document and the specific vector chunk
+- **Page number** — optional page-level localization within the source document
+- **Character offsets** — start and end positions within the document text
+- **Confidence score** — 0-1.0 rating of extraction confidence
+- **Extraction attribution** — which service or module extracted the span
+- **Content** — the actual extracted text passage
+
+Evidence spans link to citation records, enabling a chain from document text through extracted evidence to legal citations used in analyses and drafts.
+
+**Current limitations:** Evidence span extraction is performed during citation extraction and document analysis — there is no dedicated UI for manual evidence span creation or review. Page number accuracy depends on the document processor's text extraction fidelity.
+
+---
+
 ## Intelligence Persistence
 
 All AI module outputs are persisted as versioned `CaseAnalysis` records. This enables:
@@ -161,7 +261,7 @@ Each analysis stores a snapshot of the case signals (metrics) at the time it was
 Each AI module reads the latest outputs of other modules via a dependency graph. Strategy reads Red Team and Discovery findings. Discovery reads Strategy priorities. This creates a feedback loop where improvements to one module enrich all dependent modules.
 
 ### LLM Output Validation
-All AI module outputs are validated against Zod schemas before persistence. Schemas are intentionally lenient (most fields optional) since LLM output is non-deterministic — the goal is catching structurally broken responses (e.g., string where object expected, missing top-level keys). If validation fails, the raw output is stored and the analysis is marked FAILED. Covers: strategy, audit, discovery, valuation, citation-check, case-theory-map, and key-exhibits modules.
+All AI module outputs are validated against Zod schemas before persistence. 36 Zod validation schemas cover all request, PATCH, analysis status, playbook, task, discovery, and motion operations. Schemas are intentionally lenient (most fields optional) since LLM output is non-deterministic — the goal is catching structurally broken responses (e.g., string where object expected, missing top-level keys). If validation fails, the raw output is stored and the analysis is marked FAILED. Covers: strategy, audit, discovery, valuation, citation-check, case-theory-map, and key-exhibits modules.
 
 ### Background Job Processing
 An in-process job queue polls the `AnalysisJob` table every 5 seconds. Jobs are prioritized (1=user-waiting to 5=background). Job claiming is atomic via database transaction with status filtering to prevent duplicate execution across restarts. This is designed to be replaced by pg-boss or BullMQ for multi-instance scaling.
@@ -270,7 +370,7 @@ The Case Chat Assistant maintains persistent conversation memory per case:
 - **Analysis versioning is backend-only** — AI analyses are versioned in the database with full version chains, but the UI does not yet expose version history navigation or diff views
 - **No external legal research** — Citation verification and case law references are LLM-generated, not sourced from legal databases
 - **Limited RBAC enforcement** — Role field exists but only case deletion checks for Admin role. Viewer restrictions are not enforced
-- **No page-level traceability** — Document chunks and extracted events lack page numbers and source quotes
+- **Page-level traceability is partial** — Evidence spans support page numbers and character offsets, but accuracy depends on document processor text extraction fidelity. Not all extracted events have page-level attribution
 - **No verification audit trail** — Event verification is a boolean toggle with no record of who verified or when
 - **No job retries** — Failed document processing jobs must be re-triggered manually by re-uploading
 - **Audit log captures actions, not state** — No before/after values recorded
@@ -278,6 +378,12 @@ The Case Chat Assistant maintains persistent conversation memory per case:
 - **Knowledge graph is API-only** — Graph edges are persisted and queryable but not rendered visually in the UI
 - **Single-instance job processor** — Background analysis jobs processed by in-process poller, not a distributed queue
 - **Staleness badges not fully surfaced** — Backend tracks staleness levels but UI does not yet display staleness indicators on all module views
+- **Portfolio risk scoring is fixed** — No custom risk weight configuration; deterministic algorithm cannot be tuned per-firm
+- **No task notifications** — Task management has no email, push, or in-app reminders for due dates or assignments
+- **Playbooks cannot chain** — One playbook cannot trigger another; no workflow composition
+- **No visual playbook editor** — Playbooks must be authored in YAML; no drag-and-drop builder
+- **Scheduling deadline extraction is manual** — No automatic parsing of scheduling orders; deadlines must be entered or extracted through document analysis
+- **Motion deadline calculation is manual** — No automatic deadline computation from rules of civil procedure
 
 ---
 
@@ -285,8 +391,7 @@ The Case Chat Assistant maintains persistent conversation memory per case:
 
 Items planned but not yet implemented:
 
-- Page-level source traceability (page numbers, extracted quotes, confidence scores on events)
-- Verification audit trail (verifiedBy, verifiedAt fields)
+- Verification audit trail (verifiedBy, verifiedAt fields on events)
 - DOCX/PDF export for drafts and discovery output
 - Full RBAC enforcement (Viewer read-only, Member restricted mutations)
 - Audit log state capture (old/new values on mutations)
@@ -297,6 +402,13 @@ Items planned but not yet implemented:
 - Visual knowledge graph rendering
 - Staleness badges and recalibration indicators in all module UIs
 - Distributed job queue (pg-boss or BullMQ) for multi-instance scaling
+- Visual playbook editor (drag-and-drop YAML builder)
+- Playbook chaining (workflow composition across playbook types)
+- Task notifications and due-date reminders
+- Configurable risk scoring weights for portfolio management
+- Automatic scheduling order parsing for deadline extraction
+- Automatic motion deadline calculation from procedural rules
+- Scheduling deadline management UI
 ---
 
 ## Supported Jurisdictions

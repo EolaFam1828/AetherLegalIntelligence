@@ -17,9 +17,9 @@
   </p>
 
   <p>
-    <img src="https://img.shields.io/badge/modules-21-blue?style=flat-square" alt="21 Modules" />
-    <img src="https://img.shields.io/badge/endpoints-66-green?style=flat-square" alt="66 Endpoints" />
-    <img src="https://img.shields.io/badge/models-25-orange?style=flat-square" alt="25 Data Models" />
+    <img src="https://img.shields.io/badge/modules-30-blue?style=flat-square" alt="30 Modules" />
+    <img src="https://img.shields.io/badge/endpoints-90+-green?style=flat-square" alt="90+ Endpoints" />
+    <img src="https://img.shields.io/badge/models-36-orange?style=flat-square" alt="36 Data Models" />
     <img src="https://img.shields.io/badge/status-operational-brightgreen?style=flat-square" alt="Status: Operational" />
     <img src="https://img.shields.io/badge/docs--only_repo-portfolio-purple?style=flat-square" alt="Documentation Only" />
   </p>
@@ -173,10 +173,10 @@ Visual walkthrough of Aether's interface and capabilities:
 
 ## Core Capabilities
 
-### 21 Integrated Modules
+### 30 Integrated Modules
 
 <details>
-<summary><strong>View all 21 modules</strong> — Click to expand the full capabilities table</summary>
+<summary><strong>View all 30 modules</strong> — Click to expand the full capabilities table</summary>
 
 <br />
 
@@ -203,6 +203,14 @@ Visual walkthrough of Aether's interface and capabilities:
 | **Case Theory Map** | Maps legal claims to required elements, elements to supporting/contradicting evidence, and evidence to source documents — exposing gaps where required elements lack proof. Outputs structured JSON with coherence scoring, critical gaps, and recommended evidence to obtain | Operational |
 | **Key Exhibits** | Catalogs and analyzes the most critical evidence in a case — relevance ranking, authentication assessment, opposing objections, and trial preparation priority. Maps each exhibit to the claims and elements it supports | Operational |
 | **Knowledge Graph** | Lightweight directed graph of relationships between case entities (supports, contradicts, mentions) written by AI modules and queryable via API | Operational |
+| **Litigation Playbooks** | YAML-defined rule-based playbooks for litigation workflows — 5 types (procedural, evidence, discovery, hearing prep, red team) with trigger conditions, rule evaluation, and structured output generation. Upload custom playbooks or use built-in templates | Operational |
+| **Portfolio Management** | Managing-partner portfolio triage with deterministic risk scoring (0-100 scale), aggregated deadline calendar, and cross-case posture snapshots for discovery, motions, experts, and settlement status | Operational |
+| **Task Management** | Operational task tracking with priority (1-5), owner assignment, due dates, status lifecycle, and entity linking to documents, events, drafts, discovery requests, vulnerabilities, and strategic priorities | Operational |
+| **Discovery Orchestration** | Discovery packet tracking (outgoing/incoming: RFP, ROG, RFA, responses, productions) with automatic discovery posture calculation, status transitions, open dispute counting, and document linking | Operational |
+| **Motion Practice** | Motion queue management with type classification (MTD, MSJ, MTC, MIL, etc.), status tracking from planned through granted/denied, due date and hearing date management, and draft linking | Operational |
+| **Evidence Triage** | Evidence span tracking within documents — page-level offsets, confidence scoring, extraction attribution, and linking to citations for evidence chain traceability | Operational |
+| **Expert Witness Tracking** | Expert witness management with specialty, retention tracking, report dates, deposition scheduling, and Daubert challenge status per expert | Operational |
+| **Scheduling Deadlines** | Structured deadline extraction from scheduling orders with categorization (discovery, expert, motions, mediation, trial, pretrial), confidence scoring, and source document traceability | Operational |
 
 </details>
 
@@ -214,7 +222,7 @@ Visual walkthrough of Aether's interface and capabilities:
 
 Multi-model AI engine with task-based routing, RAG-powered semantic search, conversation memory with automatic summarization, per-case data separation, SSO authentication, action audit logging, and a full intelligence persistence layer with versioned analyses, signal-driven staleness detection, cross-module context assembly, and a knowledge graph. Containerized service deployed behind an identity proxy.
 
-> **[Full architecture with diagrams -> ARCHITECTURE.md](ARCHITECTURE.md)** — system overview, intelligence layer, AI engine, RAG pipeline, data model (25 models ERD), 66-endpoint API surface, security model, deployment topology, and design decisions.
+> **[Full architecture with diagrams -> ARCHITECTURE.md](ARCHITECTURE.md)** — system overview, intelligence layer, AI engine, RAG pipeline, data model (36 models ERD), 90+-endpoint API surface, security model, deployment topology, and design decisions.
 
 <details>
 <summary><strong>View architecture diagram</strong> — System overview with all layers</summary>
@@ -232,7 +240,7 @@ flowchart TB
     end
 
     subgraph API["Application Layer"]
-        EX["Express.js API<br/><i>66 endpoints</i>"]
+        EX["Express.js API<br/><i>90+ endpoints</i>"]
     end
 
     subgraph AI["AI Engine"]
@@ -250,7 +258,7 @@ flowchart TB
     end
 
     subgraph DATA["Data Layer"]
-        PG["PostgreSQL 16<br/><i>25 models · pgvector</i>"]
+        PG["PostgreSQL 16<br/><i>36 models · pgvector</i>"]
         FS["NAS Storage<br/><i>Document files</i>"]
     end
 
@@ -281,7 +289,7 @@ flowchart TB
 | Layer | Technology |
 |-------|-----------|
 | Frontend | React 19, TypeScript, Vite, Tailwind CSS |
-| Backend | Express.js, TypeScript, Prisma ORM (25 models, 66 endpoints) |
+| Backend | Express.js, TypeScript, Prisma ORM (36 models, 90+ endpoints) |
 | Database | PostgreSQL 16, pgvector extension |
 | AI (Primary) | Google Gemini Pro (strategy, audit, drafting) · Gemini Flash (chat, simulation) |
 | AI (Fallback) | Ollama + Llama 3.1 — local inference when Gemini is unavailable |
@@ -303,7 +311,7 @@ flowchart TB
 | **Not a lawyer** | All output requires attorney review before any use in legal proceedings |
 | **No external legal research** | Citation verification is LLM-based plausibility checking, not Westlaw/LexisNexis lookup |
 | **No document export** | AI-generated drafts and analyses are viewable in the UI only — no DOCX or PDF download |
-| **No page-level traceability** | Extracted events link to source documents but not to specific pages or quotes |
+| **Partial page-level traceability** | Evidence spans support page numbers and offsets, but not all extracted events have page-level attribution |
 | **Analysis versioning is backend-only** | Version chains exist in the database but UI doesn't expose version history navigation |
 | **Limited access control** | Auth is header-based via identity proxy — minimal RBAC enforcement |
 | **No job retries** | Failed document processing jobs must be re-triggered by re-uploading |

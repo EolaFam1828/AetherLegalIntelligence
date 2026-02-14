@@ -43,7 +43,7 @@ flowchart TB
     end
 
     subgraph API["Application Layer"]
-        EX["Express.js API Server<br/><i>TypeScript · 66 endpoints · 9 route modules</i>"]
+        EX["Express.js API Server<br/><i>TypeScript · 90+ endpoints · 14 route modules</i>"]
         MW["Middleware Stack<br/><i>Auth · Audit · Validation</i>"]
     end
 
@@ -67,7 +67,7 @@ flowchart TB
     end
 
     subgraph DATA["Data Layer"]
-        PG["PostgreSQL 16<br/><i>Prisma ORM · 25 models</i>"]
+        PG["PostgreSQL 16<br/><i>Prisma ORM · 36 models</i>"]
         FS["NAS-Mounted Storage<br/><i>Document files · Uploads</i>"]
     end
 
@@ -161,6 +161,7 @@ Each AI module reads from other modules' latest outputs to build enriched contex
 | **Key Exhibits** | Strategy, Red Team, Case Theory Map |
 | **Privilege Scan** | (standalone — no cross-module reads) |
 | **Citation Check** | (standalone — no cross-module reads) |
+| **Playbook Execution** | Strategy, Red Team, Discovery (via case data + signals) |
 
 ### Analysis Lifecycle Service
 
@@ -347,10 +348,10 @@ flowchart LR
 
 ## Data Model
 
-Multi-tenant architecture with firm-level data isolation, vector search, conversation memory, intelligence persistence with versioned analyses, signal computation, knowledge graph, and action audit logging. 25 Prisma models across 9 migrations.
+Multi-tenant architecture with firm-level data isolation, vector search, conversation memory, intelligence persistence with versioned analyses, signal computation, knowledge graph, litigation playbooks, managing-partner workflows (portfolio, tasks, discovery orchestration, motion practice), evidence tracking, and action audit logging. 36 Prisma models across 13 migrations.
 
 <details>
-<summary><strong>View complete data model diagram</strong> — 25 Prisma models with relationships</summary>
+<summary><strong>View complete data model diagram</strong> — 36 Prisma models with relationships</summary>
 
 <br />
 
@@ -372,16 +373,30 @@ erDiagram
     CASE ||--o{ ANALYSIS_JOB : "queues"
     CASE ||--o{ SIMULATION_SESSION : "simulates"
     CASE ||--o{ CITATION_RECORD : "verifies"
+    CASE ||--o{ PLAYBOOK_EXECUTION : "executes"
+    CASE ||--o{ TASK : "assigns"
+    CASE ||--o{ SCHEDULING_DEADLINE : "schedules"
+    CASE ||--o| DISCOVERY_POSTURE : "tracks posture"
+    CASE ||--o{ DISCOVERY_PACKET : "tracks packets"
+    CASE ||--o{ MOTION : "files"
+    CASE ||--o{ EXPERT : "retains"
+    CASE ||--o| SETTLEMENT_POSTURE : "negotiates"
     DOCUMENT ||--o{ DOCUMENT_CHUNK : "embedded as"
     DOCUMENT ||--o{ DOCUMENT_TAG : "tagged with"
     DOCUMENT ||--o{ DOCUMENT_JOB : "tracked by"
+    DOCUMENT ||--o{ EVIDENCE_SPAN : "spans"
     DOCUMENT ||--o{ EVENT : "source of"
     CASE_ANALYSIS ||--o{ STRATEGIC_PRIORITY : "produces"
     CASE_ANALYSIS ||--o{ VULNERABILITY : "identifies"
     CASE_ANALYSIS ||--o{ DISCOVERY_REQUEST : "generates"
     CASE_ANALYSIS ||--o{ LEGAL_DRAFT : "drafts"
     CASE_ANALYSIS ||--o{ ANALYSIS_PATCH : "patched by"
+    CASE_ANALYSIS ||--o{ CITATION_RECORD : "cites"
     CASE_ANALYSIS ||--o| CASE_ANALYSIS : "supersedes"
+    FIRM ||--o{ PLAYBOOK : "owns"
+    PLAYBOOK ||--o{ PLAYBOOK_EXECUTION : "runs"
+    TASK ||--o{ TASK_LINK : "links to"
+    LEGAL_DRAFT ||--o{ MOTION : "supports"
 
     FIRM {
         uuid id PK
@@ -549,6 +564,9 @@ erDiagram
         text description
         boolean isVerified
         boolean isDeadline
+        float confidence "nullable"
+        json sources "evidence source references"
+        text extractedText "nullable"
         uuid caseId FK
         uuid sourceDocumentId FK "nullable"
     }
@@ -565,11 +583,128 @@ erDiagram
     CITATION_RECORD {
         uuid id PK
         uuid caseId FK
+        uuid analysisId FK "nullable"
+        uuid draftId FK "nullable"
+        uuid sourceDocumentId FK "nullable"
+        uuid evidenceSpanId FK "nullable"
         string citation
         enum status "VERIFIED | SUSPICIOUS | LIKELY_FABRICATED | USER_CONFIRMED"
         float confidence
         string_array usedIn
+        string extractedFrom "nullable"
+        boolean jurisdictionScoped
         datetime verifiedAt
+    }
+
+    EVIDENCE_SPAN {
+        uuid id PK
+        uuid documentId FK
+        uuid chunkId FK "nullable"
+        text content
+        int pageNumber "nullable"
+        int startOffset "nullable"
+        int endOffset "nullable"
+        float confidence
+        string extractedBy "nullable"
+    }
+
+    PLAYBOOK {
+        uuid id PK
+        string name
+        enum type "PROCEDURAL | EVIDENCE | DISCOVERY | HEARING_PREP | RED_TEAM"
+        text description
+        string version
+        json config "triggers, rules, outputs, thresholds"
+        boolean isActive
+        uuid firmId FK
+    }
+
+    PLAYBOOK_EXECUTION {
+        uuid id PK
+        uuid playbookId FK
+        uuid caseId FK
+        enum status "PENDING | RUNNING | COMPLETED | FAILED"
+        json inputs
+        json outputs
+        string triggeredBy
+    }
+
+    TASK {
+        uuid id PK
+        uuid caseId FK
+        string title
+        text description
+        enum status "OPEN | IN_PROGRESS | DONE | CANCELLED"
+        int priority "1-5"
+        datetime dueDate "nullable"
+        uuid ownerUserId FK "nullable"
+        enum sourceModule "nullable"
+    }
+
+    TASK_LINK {
+        uuid id PK
+        uuid taskId FK
+        string linkType "EVENT | DOCUMENT | DRAFT | etc."
+        string linkId
+    }
+
+    SCHEDULING_DEADLINE {
+        uuid id PK
+        uuid caseId FK
+        string name
+        datetime date
+        enum category "DISCOVERY | EXPERT | MOTIONS | MEDIATION | TRIAL | PRETRIAL"
+        boolean isCritical
+        enum confidence "HIGH | MEDIUM | LOW"
+    }
+
+    DISCOVERY_POSTURE {
+        uuid id PK
+        uuid caseId FK "unique"
+        enum status "NOT_STARTED | IN_PROGRESS | DISPUTE | COMPLETE"
+        datetime lastOutgoingDate
+        datetime lastIncomingDate
+        int openDisputesCount
+    }
+
+    DISCOVERY_PACKET {
+        uuid id PK
+        uuid caseId FK
+        enum packetType "OUTGOING | INCOMING"
+        enum subtype "RFP | ROG | RFA | RESPONSE | PRODUCTION"
+        datetime servedDate
+        datetime dueDate
+        enum status "DRAFT | SERVED | RECEIVED | OVERDUE | DEFICIENT | CURED"
+    }
+
+    MOTION {
+        uuid id PK
+        uuid caseId FK
+        enum motionType "MTD | MSJ | MTC | MIL | EXTENSION | SANCTIONS | OTHER"
+        string title
+        datetime dueDate
+        datetime hearingDate
+        enum status "PLANNED | DRAFTING | FILED | HEARD | GRANTED | DENIED | MOOT"
+        uuid linkedDraftId FK "nullable"
+    }
+
+    EXPERT {
+        uuid id PK
+        uuid caseId FK
+        string name
+        string specialty
+        enum retainedBy "PLAINTIFF | DEFENDANT | COURT"
+        datetime reportDue
+        enum daubertStatus "NONE | CHALLENGED | UPHELD | EXCLUDED"
+    }
+
+    SETTLEMENT_POSTURE {
+        uuid id PK
+        uuid caseId FK "unique"
+        float lastDemand
+        float lastOffer
+        datetime mediationDate
+        enum status "UNKNOWN | PRE_MEDIATION | IN_MEDIATION | POST_MEDIATION | SETTLED | IMPASSE"
     }
 
     ANALYSIS_JOB {
@@ -609,10 +744,10 @@ erDiagram
 
 ## API Surface
 
-66 RESTful endpoints organized across 9 route modules plus 2 health endpoints. Every mutating endpoint writes to the audit log. All POST and PATCH endpoints validated via Zod schemas. CRUD mutations trigger the recalibration engine to detect stale analyses.
+90+ RESTful endpoints organized across 14 route modules plus 2 health endpoints. Every mutating endpoint writes to the audit log. All POST and PATCH endpoints validated via Zod schemas (36 schemas total). CRUD mutations trigger the recalibration engine to detect stale analyses.
 
 <details>
-<summary><strong>View API surface diagram</strong> — 66 endpoints across 9 route modules + health</summary>
+<summary><strong>View API surface diagram</strong> — 90+ endpoints across 14 route modules + health</summary>
 
 <br />
 
@@ -672,6 +807,35 @@ flowchart TB
         AD3["POST /admin/reset-demo<br/><i>Reset demo data</i>"]
     end
 
+    subgraph PLAYBOOKS["Playbooks — 8 endpoints"]
+        PB1["GET/POST /playbooks<br/><i>List + upload YAML playbooks</i>"]
+        PB2["GET/DELETE /playbooks/:id<br/><i>Details + removal</i>"]
+        PB3["POST /playbooks/:id/execute<br/><i>Run against a case</i>"]
+        PB4["GET /playbooks/executions/:id<br/><i>Execution status + results</i>"]
+        PB5["GET /playbooks/templates<br/><i>Built-in playbook templates</i>"]
+    end
+
+    subgraph PORTFOLIO["Portfolio — 2 endpoints"]
+        PO1["GET /portfolio/triage<br/><i>Risk-ranked case list (0-100)</i>"]
+        PO2["GET /portfolio/calendar<br/><i>Aggregated deadline calendar</i>"]
+    end
+
+    subgraph TASKS["Tasks — 6 endpoints"]
+        TK1["GET/POST /tasks<br/><i>List + create tasks</i>"]
+        TK2["PATCH/DELETE /tasks/:id<br/><i>Update + remove tasks</i>"]
+        TK3["POST/DELETE /task-links<br/><i>Link tasks to entities</i>"]
+    end
+
+    subgraph DISC_MGMT["Discovery Mgmt — 4 endpoints"]
+        DM1["GET/POST /discovery/packets<br/><i>Track discovery packets</i>"]
+        DM2["PATCH/DELETE /discovery/packets/:id<br/><i>Update + remove packets</i>"]
+    end
+
+    subgraph MOTIONS["Motions — 4 endpoints"]
+        MO1["GET/POST /motions<br/><i>List + create motions</i>"]
+        MO2["PATCH/DELETE /motions/:id<br/><i>Update + remove motions</i>"]
+    end
+
     style AUTH fill:#334155,stroke:#64748b,color:#e2e8f0
     style CASE_MGMT fill:#1e3a5f,stroke:#3b82f6,color:#e2e8f0
     style AI_INTEL fill:#3b1d6e,stroke:#8b5cf6,color:#e2e8f0
@@ -679,6 +843,11 @@ flowchart TB
     style SIMULATION fill:#5b2120,stroke:#ef4444,color:#e2e8f0
     style TOOLS fill:#1a3a2a,stroke:#10b981,color:#e2e8f0
     style ADMIN fill:#164e63,stroke:#06b6d4,color:#e2e8f0
+    style PLAYBOOKS fill:#4a1942,stroke:#c084fc,color:#e2e8f0
+    style PORTFOLIO fill:#1e3a3a,stroke:#2dd4bf,color:#e2e8f0
+    style TASKS fill:#3a2a1a,stroke:#fb923c,color:#e2e8f0
+    style DISC_MGMT fill:#1a2a3a,stroke:#38bdf8,color:#e2e8f0
+    style MOTIONS fill:#3a1a2a,stroke:#f472b6,color:#e2e8f0
 ```
 
 </details>
@@ -853,8 +1022,9 @@ Unit test suite using **vitest 4.0** with `@vitest/coverage-v8`:
 | llmOutputSchemas | 17 | LLM output validation |
 | auth | 16 | Auth middleware + hardening |
 | analysisLifecycle | 15 | Analysis lifecycle helpers |
+| playbookValidator | 14 | Playbook YAML validation |
 | contextAssembler | 9 | Context assembly pipeline |
-| **Total** | **252** | |
+| **Total** | **266** | |
 
 Coverage thresholds enforced at **80% line coverage** for correctness-critical services: `embeddings.ts`, `rateLimiter.ts`, `recalibration.ts`, `signals.ts`, `intelligence.ts`.
 
